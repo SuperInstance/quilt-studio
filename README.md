@@ -47,26 +47,38 @@ audit/fleet-toolchain-audit.md   # what the fleet-midi/DAW family + LAU top-5 ac
 ```
 
 **Phase 0 status: the WASM kernel is in the chair.** Both kernels pass the same
-28-test contract — 56/56 total (`npm test` in `packages/quilt-core`). Upstream fixes
+39-test contract — 78/78 total (`npm test` in `packages/quilt-core`). Upstream fixes
 required to get here: PR SuperInstance/quilt-vm-wasm#1 (unbuildable manifest +
 `time()` scalar getter). Adapter-owned semantics and upstream gaps: see the audit.
 
 ## The kernel contract (summary)
 
-- `bind(name, value)` — cell create/overwrite; name ≤256 chars, value JSON-only.
+Ten-line tour: `node examples/hello-quilt.mjs`. Executable spec:
+`packages/quilt-core/tests/contract-suite.mjs` (39 tests, kernel-agnostic).
+
+- `bind(name, value)` — cell create/overwrite; name ≤256 chars; value is JSON-canonical
+  (snapshotted — mutating the original doesn't alias; NaN/±Infinity → null).
 - `view(name)` — read; unknown → `null` (degrade, never throw).
 - `link(a, b, type)` — typed directed edge; `UnknownCell` on unbound endpoints;
-  idempotent per (a,b,type); stable id `a->b:type`.
-- `effect(name, op, forward, inverse)` + `apply(name, op)` + `undo()` — reversible
-  edits with LIFO history; empty undo → `false`.
-- `tick(dt=1)` + `queueEffect(name, op)` — the clock; queued effects flush FIFO.
-- `snapshot()` — `{cells, links, ts, historyDepth, queued}`, the Tide-Pool WRITE payload.
+  idempotent per (a,b,type); stable id `a->b:type` with separator escaping (weird
+  names can't collide).
+- `unlink(id)` / `unbind(name)` — deletion; degrade to `false` on unknown.
+- `effect(name, op, forward, inverse)` — register a declared-bidirectional op.
+- `apply` / `applyInverse` — run forward / inverse; `undo()` is global LIFO and
+  returns the restored value (`null` when empty).
+- `queueEffect(name, op)` — validated at enqueue (bad cell/op throws immediately).
+- `tick(dt=1)` / `now()` — the DAW clock; queued effects flush FIFO per tick.
+- `snapshot()` / `load(snapshot)` — distillable state / hydrate (clock restarts at 0:
+  `ts` is provenance, and the WASM substrate has no time-setter).
+
+**Playtest loop:** outside-subagent playtests audit each contract revision; findings
+fold back into the next (see `git log` — the commits say what each round found).
 
 ## Test
 
 ```bash
 cd packages/quilt-core && npm test
-# 56/56 green — the same 28-test contract over BOTH the reference JS kernel
+# 78/78 green — the same 39-test contract over BOTH the reference JS kernel
 # and the real quilt-vm-wasm WASM kernel.
 ```
 

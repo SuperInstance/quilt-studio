@@ -133,7 +133,7 @@ export function runContractSuite(label, makeKernel) {
     k.bind('counter', 0);
     k.effect('counter', 'inc', v => v + 1, v => v - 1);
     k.apply('counter', 'inc');
-    assert.equal(k.undo(), true);
+    assert.equal(k.undo(), 0);
     assert.equal(k.view('counter'), 0);
   });
 
@@ -146,9 +146,9 @@ export function runContractSuite(label, makeKernel) {
     assert.equal(k.view('c'), 1);
   });
 
-  test(`${label}: undo on empty history returns false (degrade, never throw)`, async () => {
+  test(`${label}: undo on empty history returns null (degrade, never throw)`, async () => {
     const k = await mk();
-    assert.equal(k.undo(), false);
+    assert.equal(k.undo(), null);
   });
 
   // ---------- TICK ----------
@@ -202,5 +202,110 @@ export function runContractSuite(label, makeKernel) {
     assert.equal(s.ts, 4);
     assert.equal(s.historyDepth, 0);
     assert.equal(s.queued, 0);
+  });
+
+  // ---------- CONTRACT v2: value semantics ----------
+  test(`${label}: bound values are snapshotted (mutating the original does not alias)`, async () => {
+    const k = await mk();
+    const patch = { level: 1 };
+    k.bind('mixer', patch);
+    patch.level = 99;
+    assert.equal(k.view('mixer').level, 1);
+  });
+
+  test(`${label}: NaN and ±Infinity canonicalize to null (JSON semantics)`, async () => {
+    const k = await mk();
+    k.bind('nan', NaN);
+    k.bind('inf', Infinity);
+    k.bind('ninf', -Infinity);
+    assert.equal(k.view('nan'), null);
+    assert.equal(k.view('inf'), null);
+    assert.equal(k.view('ninf'), null);
+  });
+
+  // ---------- CONTRACT v2: edge id escaping ----------
+  test(`${label}: edge ids escape separator characters — no collisions on weird names`, async () => {
+    const k = await mk();
+    k.bind('a->b', 1); k.bind('c', 2); k.bind('a', 3); k.bind('b->c', 4);
+    const id1 = k.link('a->b', 'c', 'x');
+    const id2 = k.link('a', 'b->c', 'x');
+    assert.notEqual(id1, id2);
+    assert.equal(k.links().length, 2);
+  });
+
+  // ---------- CONTRACT v2: validated queue ----------
+  test(`${label}: queueEffect throws UnknownCell at enqueue time`, async () => {
+    const k = await mk();
+    assert.throws(() => k.queueEffect('ghost', 'inc'), /UnknownCell: ghost/);
+  });
+
+  test(`${label}: queueEffect throws UnknownOp at enqueue time`, async () => {
+    const k = await mk();
+    k.bind('a', 0);
+    assert.throws(() => k.queueEffect('a', 'nope'), /UnknownOp: nope/);
+  });
+
+  // ---------- CONTRACT v2: live inverse ----------
+  test(`${label}: applyInverse runs the registered inverse`, async () => {
+    const k = await mk();
+    k.bind('counter', 5);
+    k.effect('counter', 'inc', v => v + 1, v => v - 1);
+    k.apply('counter', 'inc');
+    k.applyInverse('counter', 'inc');
+    assert.equal(k.view('counter'), 5);
+  });
+
+  // ---------- CONTRACT v2: undo returns the restored value ----------
+  test(`${label}: undo returns the restored value`, async () => {
+    const k = await mk();
+    k.bind('c', 0);
+    k.effect('c', 'inc', v => v + 1, v => v - 1);
+    k.apply('c', 'inc');
+    assert.equal(k.undo(), 0);
+    assert.equal(k.view('c'), 0);
+  });
+
+  // ---------- CONTRACT v2: deletion ----------
+  test(`${label}: unbind removes the cell and its incident edges and ops`, async () => {
+    const k = await mk();
+    k.bind('a', 1); k.bind('b', 2); k.bind('c', 3);
+    k.link('a', 'b', 'x'); k.link('b', 'c', 'y');
+    k.effect('a', 'op', v => v, v => v);
+    assert.equal(k.unbind('b'), true);
+    assert.equal(k.view('b'), null);
+    assert.equal(k.links().length, 0, 'both edges touched b');
+    k.apply('a', 'op');                    // a's own op survives
+    assert.equal(k.view('a'), 1);
+  });
+
+  test(`${label}: unbind of unknown cell degrades to false`, async () => {
+    const k = await mk();
+    assert.equal(k.unbind('ghost'), false);
+  });
+
+  test(`${label}: unlink removes exactly one edge; unknown id degrades to false`, async () => {
+    const k = await mk();
+    k.bind('a', 1); k.bind('b', 2);
+    const id = k.link('a', 'b', 'feeds');
+    assert.equal(k.unlink('a->b:feeds'), true);
+    assert.equal(k.links().length, 0);
+    assert.equal(k.unlink('never-was'), false);
+    assert.ok(id);
+  });
+
+  // ---------- CONTRACT v2: hydration ----------
+  test(`${label}: load(snapshot) round-trips cells and links; clock restarts at 0`, async () => {
+    const k = await mk();
+    k.bind('tempo', 120);
+    k.bind('patch', { osc: 'sine' });
+    k.link('tempo', 'patch', 'drives');
+    k.tick(4);
+    const snap = k.snapshot();
+    const k2 = await mk();
+    k2.load(snap);
+    assert.equal(k2.view('tempo'), 120);
+    assert.deepEqual(k2.view('patch'), { osc: 'sine' });
+    assert.equal(k2.links().length, 1);
+    assert.equal(k2.now(), 0, 'clock is provenance, not resurrected');
   });
 }
