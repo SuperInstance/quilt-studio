@@ -48,9 +48,31 @@ something physically).
 ## 3. quilt-vm-wasm — the kernel we mount, not rebuild
 
 Cell-graph VM, 5 opcodes BIND/LINK/EFFECT/VIEW/TICK. Perf claim: C ~10 ns /
-Rust ~50 ns / WASM ~200 ns per op. `packages/quilt-core/tests/kernel-contract.test.mjs`
-(28 green) is the adapter contract it must satisfy. Next step: JS adapter wrapper over
-the WASM exports, same suite unmodified.
+Rust ~50 ns / WASM ~200 ns per op. Now vendored and verified: `packages/quilt-core`
+ships the built WASM (131 KB) + the L1 adapter, and the same 28-test contract
+passes over both the reference JS kernel and the real WASM (56/56).
+
+**Upstream findings (PR SuperInstance/quilt-vm-wasm#1, branch
+`fix/manifest-wasm-optional-dep`):**
+1. **Manifest was unbuildable** — the `wasm` feature referenced `wasm-bindgen`
+   without `optional = true`; no cargo command ran at all. The repo's "5 native
+   tests" had never actually run. Fixed with `dep:` syntax.
+2. **serde-wasm-bindgen 0.6.5 object bug** — `to_value(serde_json::Value::Object)`
+   yields empty JS objects (and `Null` → `undefined`). Repro: bind `{a:1}` → view
+   `{}`. Workaround: the adapter stores cells as canonical JSON **text** in the
+   kernel and owns the type boundary. `stats()` is likewise empty from JS.
+3. **`time()` scalar getter added** — the only honest clock readback until (2) is
+   fixed upstream.
+
+**Semantic gaps the adapter emulates (candidates for upstream PRs):**
+- `effect()` is record-only — no op dispatch, no named ops (adapter owns the op
+  registry and dispatch).
+- `link()` appends duplicates; no `links()` getter (adapter dedupes and lists).
+- `bind()` hardcodes `immutable: true` on every cell; the field is unread —
+  dead data or a half-finished guard.
+- `view()` appends a ViewRecord per call — reads are logged as views (the adapter
+  reads as viewer `_kernel`; fine, but worth a `peek()` that doesn't log).
+- No queue/flush in `tick()` (adapter implements FIFO).
 
 ## 4. LAU top-5 (math → L0 WASM candidates)
 

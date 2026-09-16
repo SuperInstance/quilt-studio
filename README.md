@@ -22,14 +22,21 @@ Full thesis: `SuperInstance` workspace → `design/2026-09-17-quilt-studio-thesi
 
 ```
 packages/quilt-core/
-  src/reference-kernel.mjs      # the L1 contract in executable form (~110 lines)
-  tests/kernel-contract.test.mjs # the interface spec: 28 tests, all green
-audit/fleet-toolchain-audit.md   # what the fleet-midi family + LAU top-5 actually ship
+  src/reference-kernel.mjs       # the L1 contract in executable form (~110 lines)
+  src/wasm-kernel.mjs            # L1 adapter over the REAL quilt-vm-wasm WASM exports
+  vendor/quilt_vm_wasm.cjs       # wasm-bindgen glue (nodejs target, renamed .cjs)
+  vendor/quilt_vm_wasm_bg.wasm   # vendored kernel build (131 KB, regenerate via scripts/build-kernel.sh)
+  tests/contract-suite.mjs       # THE interface spec: 28 tests, kernel-agnostic
+  tests/kernel-contract.test.mjs # suite → reference JS kernel
+  tests/wasm-kernel.test.mjs     # suite → real WASM kernel (the gate that matters)
+  scripts/build-kernel.sh        # regenerate vendor/ from SuperInstance/quilt-vm-wasm
+audit/fleet-toolchain-audit.md   # what the fleet-midi/DAW family + LAU top-5 actually ship
 ```
 
-Phase 0 = contracts + audit + decisions. The Theia shell generator lands in Phase 1
-(`theia-app` skeleton with a quilt view contribution); it is deliberately deferred —
-contracts first, furniture second.
+**Phase 0 status: the WASM kernel is in the chair.** Both kernels pass the same
+28-test contract — 56/56 total (`npm test` in `packages/quilt-core`). Upstream fixes
+required to get here: PR SuperInstance/quilt-vm-wasm#1 (unbuildable manifest +
+`time()` scalar getter). Adapter-owned semantics and upstream gaps: see the audit.
 
 ## The kernel contract (summary)
 
@@ -45,8 +52,9 @@ contracts first, furniture second.
 ## Test
 
 ```bash
-cd packages/quilt-core && node --test tests/kernel-contract.test.mjs
-# 28/28 green
+cd packages/quilt-core && npm test
+# 56/56 green — the same 28-test contract over BOTH the reference JS kernel
+# and the real quilt-vm-wasm WASM kernel.
 ```
 
 ## License
