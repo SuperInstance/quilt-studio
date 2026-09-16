@@ -1,0 +1,14 @@
+{
+  "name": "@quilt-studio/view",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "description": "RTS-style live view of the quilt cell graph: kernel subscription → render model → frames. Engine lands after the L2 API pass; skeleton only.",
+  "scripts": {
+    "test": "echo \"quilt-view: no tests yet — engine lands in the L2 API pass\""
+  },
+  "license": "EPL-2.0",
+  "peerDependencies": {
+    "@quilt-studio/core": "*"
+  }
+}

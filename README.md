@@ -3,8 +3,21 @@
 **An open-source studio built on the polyformalism.** Theia product shell around a
 quilt-vm kernel, t-minus transport, the fleet-midi toolchain, and the Tide-Pool memory.
 
+**What that means in one paragraph:** a *cell* is a named JSON value; *cells* are
+wired into a typed graph; **BIND / LINK / EFFECT / VIEW / TICK** are the only five
+things the runtime can do to them. The same graph is simultaneously a program, a
+memory, a session file, and a live stage — the studio is the camera pointed at it.
+One WASM kernel, many faces (Theia shell, web, CLI, game engine, TouchDesigner).
+Music studios are the model: the quilt is the session; every cell is an instrument
+or a cable.
+
 Full thesis: `SuperInstance` workspace → `design/2026-09-17-quilt-studio-thesis.md`
 (the decisions below are committed there as §9–11).
+
+**New here? Start at `packages/quilt-core/`** — the 28-test contract any kernel must
+pass, two implementations that do (pure JS reference + the real quilt-vm-wasm WASM
+build, vendored — no Rust toolchain needed), and `audit/fleet-toolchain-audit.md`
+for the full map of what the fleet's music/DAW/MIDI projects ship today.
 
 ## Why (committed decisions)
 
