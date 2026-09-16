@@ -1,0 +1,11 @@
+{
+  "name": "@quilt-studio/core",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "L1 kernel contract (reference JS implementation) for quilt-studio. Any quilt-vm-compatible kernel must pass tests/ unmodified.",
+  "scripts": {
+    "test": "node --test tests/kernel-contract.test.mjs"
+  },
+  "license": "EPL-2.0"
+}
