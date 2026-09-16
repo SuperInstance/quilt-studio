@@ -294,6 +294,18 @@ export function runContractSuite(label, makeKernel) {
   });
 
   // ---------- CONTRACT v2: hydration ----------
+  test(`${label}: cells named __proto__ survive snapshot and load`, async () => {
+    const k = await mk();
+    k.bind('__proto__', 42);
+    k.bind('normal', 1);
+    const s = k.snapshot();
+    assert.equal(s.cells['__proto__'], 42);
+    assert.ok(Object.keys(s.cells).includes('__proto__'));
+    const k2 = await mk();
+    k2.load(s);
+    assert.equal(k2.view('__proto__'), 42);
+  });
+
   test(`${label}: load(snapshot) round-trips cells and links; clock restarts at 0`, async () => {
     const k = await mk();
     k.bind('tempo', 120);

@@ -160,8 +160,9 @@ export class WasmQuiltKernel {
   }
 
   snapshot() {
-    const cells = {};
-    for (const n of this.cells) cells[n] = this.view(n);
+    // Object.fromEntries, NOT `{}` then assign — a cell literally named
+    // '__proto__' must survive as a data property (QA playtest found this).
+    const cells = Object.fromEntries([...this.cells].map(n => [n, this.view(n)]));
     return {
       cells,
       links: this.links(),

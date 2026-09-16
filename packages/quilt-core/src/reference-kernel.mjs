@@ -138,8 +138,9 @@ export class QuiltKernel {
   }
 
   snapshot() {
-    const cells = {};
-    for (const [n, v] of this.cells) cells[n] = v;
+    // Object.fromEntries, NOT `{}` then assign — a cell literally named
+    // '__proto__' must survive as a data property (QA playtest found this).
+    const cells = Object.fromEntries(this.cells);
     return {
       cells,
       links: this.links(),
