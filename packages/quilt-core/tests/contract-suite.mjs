@@ -320,4 +320,88 @@ export function runContractSuite(label, makeKernel) {
     assert.equal(k2.links().length, 1);
     assert.equal(k2.now(), 0, 'clock is provenance, not resurrected');
   });
+
+  // ---------- CONTRACT v3: L2 surface ----------
+  test(`${label}: view returns a fresh copy — mutating it cannot corrupt kernel state`, async () => {
+    const k = await mk();
+    k.bind('patch', { level: 1 });
+    const seen = k.view('patch');
+    seen.level = 999;
+    assert.equal(k.view('patch').level, 1);
+  });
+
+  test(`${label}: subscribe receives bind/apply events with cell and value`, async () => {
+    const k = await mk();
+    const events = [];
+    k.subscribe(e => events.push(e));
+    k.bind('tempo', 120);
+    k.effect('tempo', 'halve', v => v / 2, v => v * 2);
+    k.apply('tempo', 'halve');
+    assert.deepEqual(events.map(e => e.kind), ['bind', 'effect', 'apply']);
+    assert.equal(events[2].cell, 'tempo');
+    assert.equal(events[2].value, 60);
+  });
+
+  test(`${label}: subscribe filters by cell and kinds; unsubscribe stops delivery`, async () => {
+    const k = await mk();
+    const events = [];
+    const unsub = k.subscribe(e => events.push(e), { cell: 'a', kinds: ['apply'] });
+    k.bind('a', 0); k.bind('b', 0);
+    k.effect('a', 'inc', v => v + 1, v => v - 1);
+    k.effect('b', 'inc', v => v + 1, v => v - 1);
+    k.apply('a', 'inc');
+    k.apply('b', 'inc');
+    assert.equal(events.length, 1, 'only a\'s apply passes the filter');
+    unsub();
+    k.apply('a', 'inc');
+    assert.equal(events.length, 1, 'unsubscribed');
+  });
+
+  test(`${label}: undo event carries cell and value (render models listen, not poll)`, async () => {
+    const k = await mk();
+    const events = [];
+    k.subscribe(e => events.push(e), { kinds: ['undo'] });
+    k.bind('x', 5);
+    k.effect('x', 'inc', v => v + 1, v => v - 1);
+    k.apply('x', 'inc');
+    k.undo();
+    assert.equal(events.length, 1);
+    assert.equal(events[0].cell, 'x');
+    assert.equal(events[0].value, 5);
+  });
+
+  test(`${label}: viewMany reads in parallel; cells(prefix) lists names`, async () => {
+    const k = await mk();
+    k.bind('mixer.a', 1); k.bind('mixer.b', 2); k.bind('lfo.rate', 3);
+    assert.deepEqual(k.viewMany(['mixer.a', 'lfo.rate', 'ghost']), [1, 3, null]);
+    assert.deepEqual(k.cells('mixer.').sort(), ['mixer.a', 'mixer.b']);
+    assert.equal(k.cells().length, 3);
+  });
+
+  test(`${label}: unlink accepts (a,b,type) triple; link id stays stable`, async () => {
+    const k = await mk();
+    k.bind('a', 1); k.bind('b', 2);
+    const id = k.link('a', 'b', 'feeds');
+    assert.equal(k.unlink('a', 'b', 'feeds'), true);
+    assert.equal(k.links().length, 0);
+    assert.equal(k.unlink('a', 'b', 'feeds'), false);
+    assert.ok(id);
+  });
+
+  test(`${label}: bind accepts metadata; metaOf reads it; snapshot round-trips it`, async () => {
+    const k = await mk();
+    k.bind('tempo', 120, { units: 'bpm', min: 20, max: 300 });
+    assert.deepEqual(k.metaOf('tempo'), { units: 'bpm', min: 20, max: 300 });
+    const k2 = await mk();
+    k2.load(k.snapshot());
+    assert.equal(k2.view('tempo'), 120);
+    assert.deepEqual(k2.metaOf('tempo'), { units: 'bpm', min: 20, max: 300 });
+  });
+
+  test(`${label}: bind rejects non-JSON metadata (circular)`, async () => {
+    const k = await mk();
+    const circular = {};
+    circular.self = circular;
+    assert.throws(() => k.bind('x', 1, circular), TypeError);
+  });
 }
