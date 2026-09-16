@@ -71,6 +71,15 @@ Ten-line tour: `node examples/hello-quilt.mjs`. Executable spec:
 - `snapshot()` / `load(snapshot)` — distillable state / hydrate (clock restarts at 0:
   `ts` is provenance, and the WASM substrate has no time-setter).
 
+**L2 surface (contract v3, playtest-driven):**
+- `subscribe(fn, {cell?, kinds?}) -> unsub` — the kernel reports every mutation;
+  render models listen, they don't poll.
+- `viewMany(names)` / `cells(prefix?)` — batch reads for 60fps views.
+- `bind(name, value, meta?)` / `metaOf(name)` — cell metadata (units/min/max);
+  meta rides along in `snapshot().meta` and survives `load()`.
+- `view()` always returns a fresh copy — mutating a view result can never touch
+  kernel state.
+
 **Playtest loop:** outside-subagent playtests audit each contract revision; findings
 fold back into the next (see `git log` — the commits say what each round found).
 
