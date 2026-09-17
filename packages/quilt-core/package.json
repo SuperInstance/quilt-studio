@@ -5,7 +5,7 @@
   "type": "module",
   "description": "L1 kernel contract + adapters for quilt-studio. Reference JS kernel and real quilt-vm-wasm WASM adapter both pass tests/contract-suite.mjs (28 tests each).",
   "scripts": {
-    "test": "node --test tests/kernel-contract.test.mjs tests/wasm-kernel.test.mjs",
+    "test": "node --test tests/*.test.mjs",
     "build:kernel": "bash scripts/build-kernel.sh"
   },
   "license": "EPL-2.0"

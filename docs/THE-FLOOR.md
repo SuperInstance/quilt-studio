@@ -182,6 +182,47 @@ constants (computation first, then locked by test):
 
 Spacing values, for the record: S = φ³/SQ, L = φ⁴/SQ, SQ = √(φ²+1).
 
+## The 2D floor — multigrid (phase 2, shipped)
+
+The iceberg, surfaced. de Bruijn's construction over the kernel: N families
+of parallel lines, `n_k·x = (j + γ_k)`, their dual = the Penrose tiling.
+Everything below was pinned by probes (`/tmp/probe-mg*.mjs`) before any
+assertion existed, and the suite keeps an anti-vacuity detuned grid to
+prove the passing tests mean something.
+
+**The dual, exact:** faces (index vectors of the arrangement cells) sit at
+`x(j) = (2/N)·Σ (j_k + γ_k + ½)·n_k`; one dual edge per arrangement
+segment, length exactly 2/5; dual tiles = the four face-corners around
+each arrangement vertex. Two bugs the probes caught and the tests now
+guard: cell indices are FLOORS not rounds (round() bent every downstream
+constant), and lines must be split at crossings with out-of-reach parallels
+else side-faces disagree and edges bend to 2φ/5. Tiles are exactly two
+rhombi — thick (72°) and thin (36°) — core ratio converging to φ.
+
+**The iceberg claim, adjudicated:** the 1D Fibonacci floor hides in every
+direction of the crystal. The family-k dual edge-lines are parallel; their
+intercepts take golden gaps
+
+  S   = (2/5)·sin(2π/5)·φ⁻³ = 0.089806…
+  L   = (2/5)·sin(2π/5)·φ⁻² = S·φ    = 0.145309…
+  S+L = (2/5)·sin(2π/5)·φ⁻¹        = 0.235114…
+
+(structural constants — identical at reach 4, 6, 8, 10, 12). In the patch
+core consecutive gaps take exactly {L, S+L}, ratio φ, **no two L adjacent**
+— the Fibonacci word law, one dimension up. The detuned grid (alternating
+±2° normals) shows ≥3 distinct core gaps, smallest ratio 1.43, six tile
+angles — the law discriminates.
+
+**γ = 0 is singular:** 61 triple concurrences at reach 3 (generic γ: 0).
+The dual stays edge-rigid (all 2/5) but concurrence vertices eat the
+rhombi; the γ=0 patch is exactly centrally symmetric.
+
+**Window:** perp-coordinates bounded, radius stable across reach — the
+finite patch samples a fixed acceptance domain.
+
+Hosting: arrangement vertices are kernel cells (`mg.v.{i}`), dual edges are
+`fam{k}` links, parameters in `mg.params`. Both kernels.
+
 ## One clock, three meanings
 
 Every subsystem ticks the same kernel clock, and that clock is itself
@@ -195,8 +236,9 @@ three readings: generation (structure), moment (accumulation), iteration
    the affine identity to FibFloor proven. Zeckendorf acceptance windows:
    membership is a condition on the fractional part {aφ} — the window
    boundaries ARE Zeckendorf thresholds (next test to pin).
-2. **Multigrid**: 5 grids at 72°, rhombic cells as kernel cells, test:
-   vertex figure and Ammann bars.
+2. ✅ **Multigrid** (phase 2, shipped): the Penrose crystal as kernel
+   tenant; the golden-gap iceberg law above. Twist listener and field
+   placement remain.
 3. **Twist listener**: feed `convergentGaps` teeth into a live kernel
    cell, let a render view (L2 `subscribe`) draw the comb as it computes.
 4. **Field on the floor**: place Phyllomandel orbiters at 2D floor
@@ -214,5 +256,6 @@ three readings: generation (structure), moment (accumulation), iteration
 | `src/phyllomandel.mjs` | the field: orbits on the golden spiral |
 | `src/fibclock.mjs` | the clock: Zeckendorf hours on the kernel tick |
 | `src/comb.mjs` | TWIST's instrument as a live tenant (L2 subscribe) |
+| `src/multigrid.mjs` | the 2D floor: de Bruijn multigrid → Penrose dual, golden gaps |
 | `src/room.mjs` | the tenant: room-as-cell on the floor |
-| `tests/*.test.mjs` | 54 tests × both kernels; golden math pinned separately |
+| `tests/*.test.mjs` | 70 tests × both kernels; golden math pinned separately |

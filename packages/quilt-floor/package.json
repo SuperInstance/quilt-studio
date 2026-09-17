@@ -5,7 +5,7 @@
   "type": "module",
   "description": "The golden-ratio substrate on the quilt kernel: Fibonacci floor (1D Penrose), phyllomandel field, Fibonacci clock, room-as-cell tenant.",
   "scripts": {
-    "test": "node --test tests/"
+    "test": "node --test tests/*.test.mjs"
   },
   "dependencies": {
     "@quilt/core": "file:../quilt-core"
