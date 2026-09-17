@@ -157,6 +157,11 @@ constants (computation first, then locked by test):
   sequence — anti-vacuity tested, so the tuning test means something.
 - **Phase convention:** w0 = 0 begins one symbol before the word's seed A;
   the word reads from index 1 (that leading B is the westward witness).
+- **The window is Zeckendorf-exact** (pinned, not prose): `zeckShift` gives
+  ⌊aφ⌋ = ΣF(k+1) − ε with ε = 1 iff the least Zeckendorf index is even
+  (the naive −1 dies at a = 2 — probes first, tests to a < 3000). Strip
+  acceptance for a ≥ 1 falls out: **{aφ} > 1/φ²** — a Zeckendorf threshold.
+  Column a = 0 is the boundary tile: the window's closed lower edge.
 - **Self-similarity without substitution:** growing the lattice reach m
   reveals a longer prefix of the SAME bi-infinite sequence — the fractal
   essays' claim in another voice.
@@ -202,5 +207,6 @@ three readings: generation (structure), moment (accumulation), iteration
 | `src/strip.mjs` | the same floor by projection: golden window, affine identity |
 | `src/phyllomandel.mjs` | the field: orbits on the golden spiral |
 | `src/fibclock.mjs` | the clock: Zeckendorf hours on the kernel tick |
+| `src/comb.mjs` | TWIST's instrument as a live tenant (L2 subscribe) |
 | `src/room.mjs` | the tenant: room-as-cell on the floor |
-| `tests/*.test.mjs` | 35 tests × both kernels; golden math pinned separately |
+| `tests/*.test.mjs` | 54 tests × both kernels; golden math pinned separately |
