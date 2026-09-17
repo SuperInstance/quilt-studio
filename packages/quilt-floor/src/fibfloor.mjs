@@ -58,9 +58,12 @@ export class FibFloor {
 
   count() { return this.intervals().length; }
 
-  // One generation: subdivide every live interval. Lengths ×1/φ, exact cover:
-  //   A (len 1)    → A(1/φ) + B(1/φ²)   total 1
-  //   B (len 1/φ)  → A(1/φ)             total 1/φ
+  // One generation: repartition every live interval. The golden cut keeps
+  // kind lengths UNIFORM across lineages (the strip test caught the naive
+  // uniform-scaling version drifting into lineage-dependent lengths):
+  //   A (len α)   → A(α/φ) + B(α/φ²)      cover: α(1/φ + 1/φ²) = α
+  //   B (len α/φ) → A(α/φ)                cover: identity — the B grows
+  //                                         into the new A, unscathed
   deflate() {
     const live = this.intervals();
     const scale = 1 / PHI;
@@ -70,7 +73,7 @@ export class FibFloor {
         children.push({ parent: t.name, ord: 0, kind: 'A', x0: t.x0, len: t.len * scale });
         children.push({ parent: t.name, ord: 1, kind: 'B', x0: t.x0 + t.len * scale, len: t.len * scale * scale });
       } else {
-        children.push({ parent: t.name, ord: 0, kind: 'A', x0: t.x0, len: t.len * scale });
+        children.push({ parent: t.name, ord: 0, kind: 'A', x0: t.x0, len: t.len });
       }
     }
     children.sort((a, b) => a.x0 - b.x0); // live order = index

@@ -45,6 +45,20 @@ for (const [label, K] of kernels) {
     }
   });
 
+  test(`${label}: kind lengths are uniform across lineages (the golden cut)`, () => {
+    const floor = new FibFloor(new K());
+    for (let g = 1; g <= 8; g++) {
+      floor.deflate();
+      const tiles = floor.intervals();
+      const aLens = tiles.filter(t => t.kind === 'A').map(t => t.len);
+      const bLens = tiles.filter(t => t.kind === 'B').map(t => t.len);
+      for (const l of aLens) assert.ok(Math.abs(l - aLens[0]) < 1e-12, `gen ${g}: every A is one length`);
+      for (const l of bLens) assert.ok(Math.abs(l - bLens[0]) < 1e-12, `gen ${g}: every B is one length`);
+      assert.ok(Math.abs(aLens[0] / bLens[0] - PHI) < 1e-9, `gen ${g}: A/B = φ`);
+      assert.ok(Math.abs(aLens[0] - Math.pow(1 / PHI, g)) < 1e-12, `gen ${g}: A = φ⁻ᵍ`);
+    }
+  });
+
   test(`${label}: the generational clock advances with the kernel clock`, () => {
     const k = new K();
     const floor = new FibFloor(k);
