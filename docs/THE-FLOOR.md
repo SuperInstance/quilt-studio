@@ -143,6 +143,34 @@ and no two cells share one. Presence is Z_in (the RFC's input primitive),
 the tide is Vibe, clamped [−1, 1]. The RFC's room-as-cell stops being a
 proposal: it is the first tenant of the floor, tested on both kernels.
 
+### 6. The Strip — projection ≡ substitution (2D phase 1, pinned)
+
+`strip.mjs` is the cut-and-project road to the same floor. Select lattice
+points whose perpendicular offset `b − φa` falls in a window; project the
+accepted points onto the golden line; the projection's spacings take
+exactly two values whose order IS the Fibonacci word. Empirically pinned
+constants (computation first, then locked by test):
+
+- **The window is the tuning.** Widths 1/φ, 1, and φ all sing: exactly two
+  spacings, ratio φ to 1e-12, the word, no BB/AAA, B-frequency → 1/φ².
+  A near-miss width (1.25) gives ratio φ² and a different Sturmian
+  sequence — anti-vacuity tested, so the tuning test means something.
+- **Phase convention:** w0 = 0 begins one symbol before the word's seed A;
+  the word reads from index 1 (that leading B is the westward witness).
+- **Self-similarity without substitution:** growing the lattice reach m
+  reveals a longer prefix of the SAME bi-infinite sequence — the fractal
+  essays' claim in another voice.
+- **The affine identity:** strip intervals and FibFloor gen-8 tiles match
+  under ONE constant scale across all 55 tiles — substitution and
+  projection are two roads to one floor. This test caught a real bug in
+  FibFloor: the naive "scale every child by 1/φ" rule drifts tile lengths
+  into lineage-dependent values (three distinct lengths at gen 8). The
+  true golden cut: a B grows into the new A *unscaled* — kind lengths stay
+  uniform forever (A = φ⁻ᵍ, B = A/φ). Fixed, and a kind-uniformity test
+  now guards it on both kernels.
+
+Spacing values, for the record: S = φ³/SQ, L = φ⁴/SQ, SQ = √(φ²+1).
+
 ## One clock, three meanings
 
 Every subsystem ticks the same kernel clock, and that clock is itself
@@ -152,9 +180,10 @@ three readings: generation (structure), moment (accumulation), iteration
 
 ## Roadmap — the 2D floor
 
-1. **Cut-and-project** from Z² along the golden line: acceptance windows
-   via Zeckendorf terms (already exact in `golden.mjs`), test: window
-   membership ⇔ tile kind.
+1. ✅ **Cut-and-project** (phase 1, shipped): golden window pinned by test;
+   the affine identity to FibFloor proven. Zeckendorf acceptance windows:
+   membership is a condition on the fractional part {aφ} — the window
+   boundaries ARE Zeckendorf thresholds (next test to pin).
 2. **Multigrid**: 5 grids at 72°, rhombic cells as kernel cells, test:
    vertex figure and Ammann bars.
 3. **Twist listener**: feed `convergentGaps` teeth into a live kernel
@@ -170,6 +199,7 @@ three readings: generation (structure), moment (accumulation), iteration
 | `src/golden.mjs` | φ, Fibonacci word, Zeckendorf, convergent ladder |
 | `src/address.mjs` | the shared phyllotaxis address space |
 | `src/fibfloor.mjs` | the floor: deflate/reflate/walk, sedimentary time |
+| `src/strip.mjs` | the same floor by projection: golden window, affine identity |
 | `src/phyllomandel.mjs` | the field: orbits on the golden spiral |
 | `src/fibclock.mjs` | the clock: Zeckendorf hours on the kernel tick |
 | `src/room.mjs` | the tenant: room-as-cell on the floor |
