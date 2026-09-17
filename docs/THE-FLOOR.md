@@ -220,6 +220,22 @@ rhombi; the γ=0 patch is exactly centrally symmetric.
 **Window:** perp-coordinates bounded, radius stable across reach — the
 finite patch samples a fixed acceptance domain.
 
+**Literature adjudication (2026-09-17):** the pins survive contact. de Bruijn
+multigrid duals always satisfy the P3 matching rules; the infinite tiling's
+thick:thin count ratio is φ (Wikipedia/MDPI Symmetry — φ² belongs to the
+*areas* of subdivided Robinson triangles, not tile counts — our core pin
+converging to 1.618 was right). Steinhardt's Ammann-quasilattice law (Eq. 1:
+consecutive gaps L or S, L/S = φ, Fibonacci sequence) and the octagonal-
+tilings paper's Appendix A.2 (subperiod norms "are L and S+L = φL") both
+match our empirical {L, S+L} carrier pair. One tension, documented: the
+Ammann bars are a *decoration* measured between families at 72°; our
+carrier lines are orthogonal intercepts of the dual — same φ-singing
+Fibonacci lattice per direction, different scale constants. Resolving the
+apparent {L, S+L}-vs-{S, L} gap pair: S+L gaps are clipped middle lines;
+re-inflating them (each C hides one line + one split) gives freq(L) →
+16+20 / 57 ≈ 0.63 ≈ 1/φ — the Fibonacci word frequency. γ=0's singular
+concurrences are de Bruijn's singular-shift case, consistent.
+
 Hosting: arrangement vertices are kernel cells (`mg.v.{i}`), dual edges are
 `fam{k}` links, parameters in `mg.params`. Both kernels.
 
