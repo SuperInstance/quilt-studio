@@ -3,6 +3,13 @@
 # (e.g. --provider ssh --id fleet-box). The command strings are byte-identical
 # to .github/workflows/test.yml — CI and the box run the same suite.
 jobs:
+  view-suite:
+    provider: local-container
+    localContainer:
+      image: node:22-bookworm
+    shell: true
+    command: cd packages/quilt-view && npm test
+    stop: always
   core-suite:
     provider: local-container
     localContainer:

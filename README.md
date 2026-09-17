@@ -44,6 +44,12 @@ packages/quilt-core/
   tests/wasm-kernel.test.mjs     # suite → real WASM kernel (the gate that matters)
   scripts/build-kernel.sh        # regenerate vendor/ from SuperInstance/quilt-vm-wasm
 audit/fleet-toolchain-audit.md   # what the fleet-midi/DAW family + LAU top-5 actually ship
+
+packages/quilt-floor/            # the Penrose floor: apps + deterministic laws on the kernel
+  (see docs/THE-FLOOR.md — 117 checks)
+
+packages/quilt-view/             # the live view: subscription → scene → frame diffs → canvas
+  (see packages/quilt-view/README.md — 14 checks, both substrates)
 ```
 
 **Phase 0 status: the WASM kernel is in the chair.** Both kernels pass the same
