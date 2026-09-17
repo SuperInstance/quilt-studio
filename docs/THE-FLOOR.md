@@ -264,9 +264,16 @@ three readings: generation (structure), moment (accumulation), iteration
    hums exactly φ, the ladder climbs toward it, extending the comb shrinks
    the delta. Suite 79/79 on both kernels, incl. the deep identity
    err·F_n² → 1 (the classic |φ − p/q| < 1/q² convergent estimate).
-4. **Field on the floor**: place Phyllomandel orbiters at 2D floor
-   vertices — the address space generalizes (Vogel → Penrose vertex
-   numbering).
+4. ✅ **Field on the floor — SHIPPED 2026-09-17** (`src/penfield.mjs`,
+   `tests/penfield.test.mjs`): Phyllomandel orbiters seated at core Penrose
+   vertices (arrangement faces of the dual), c = the vertex position, one
+   coherent z → z²+c per kernel tick, escapes counted as orbiters crossing
+   the radius-2 horizon (gone = null, they stay gone). The address-space
+   generalization is pinned as the **rank-2 golden module** (§8): projected
+   vertex-address gaps are all m·p + n·q with atom ratio q/p = φ. Probed
+   honest: the φ-ladder hypothesis (gaps = a·φᵏ) DIED — rung offsets −0.44 —
+   and the module is what survives; the probe became the test. Detuned
+   crystals fail to sing. 90/90 both kernels.
 
 ## Files
 
@@ -280,6 +287,29 @@ three readings: generation (structure), moment (accumulation), iteration
 | `src/fibclock.mjs` | the clock: Zeckendorf hours on the kernel tick |
 | `src/comb.mjs` | TWIST's instrument as a live tenant (L2 subscribe) |
 | `src/twistlisten.mjs` | twist listener — three voices, one φ; L2 `listen()` |
+| `src/penfield.mjs` | field on the floor — orbiters at Penrose vertices; Z[φ] module |
 | `src/multigrid.mjs` | the 2D floor: de Bruijn multigrid → Penrose dual, golden gaps |
 | `src/room.mjs` | the tenant: room-as-cell on the floor |
 | `tests/*.test.mjs` | 70 tests × both kernels; golden math pinned separately |
+
+## 8. The field on the floor — rank-2 where the floor was rank-1
+
+Phase 4. The 1D field seats orbiters on a Vogel spiral: one index, one
+golden angle, address `i` ↦ polar projection. The 2D floor generalizes the
+address space: every core Penrose vertex (an arrangement face of the
+multigrid dual) hosts an orbiter whose complex parameter c IS the vertex
+position. One kernel tick advances z → z² + c across the whole vertex
+field coherently; orbiters crossing the radius-2 horizon are null and stay
+null — the sea does not run backward (inverse: documented no-op, same
+honesty as the 1D field).
+
+**The address law, probed and pinned.** Read the vertices' projected
+addresses along any grid direction and take consecutive gaps. The first
+hypothesis was a φ-ladder — gaps a·φᵏ — and it DIED in the probe: the rung
+offsets came out −0.44, not integers. What survives is the rank-2 golden
+module: the distinct gaps have two atoms p < q with q/p = φ to 1e-9, and
+every gap is m·p + n·q for small integers m, n (search-pinned, exact to
+1e-9, with at least one element needing both atoms — genuinely rank 2).
+The 1D floor's alphabet was a word over two letters; the 2D vertex address
+alphabet is their integer span. A detuned crystal leaves the module — the
+law discriminates, as every floor law must.
