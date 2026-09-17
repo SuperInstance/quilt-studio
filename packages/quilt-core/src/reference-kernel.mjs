@@ -10,9 +10,15 @@
 //   - Values are JSON-canonical (value semantics): bind snapshots; view returns
 //     a FRESH copy (mutating a view result never touches kernel state);
 //     NaN/±Infinity canonicalize to null, per JSON.stringify semantics.
-//   - Errors carry greppable names: UnknownCell / UnknownOp.
+// Errors carry greppable names: UnknownCell / UnknownOp.
+//   - undo() is global LIFO over apply, applyInverse, AND bind: everything is
+//     reversible. Undoing a fresh bind removes the cell (the address never
+//     existed); undoing an overwrite restores the prior value. The floor's
+//     time travel runs on this.
 //   - Subscriptions are synchronous and best-effort: a throwing listener is
 //     skipped, never propagated into the mutation that fired it.
+
+const ABSENT = Symbol('absent'); // cell did not exist before this bind
 
 export class QuiltKernel {
   constructor() {
@@ -47,12 +53,14 @@ export class QuiltKernel {
   bind(name, value, meta = undefined) {
     assertName(name);
     if (!isJSON(value)) throw new TypeError('bind: value must be JSON-serializable');
+    const before = this._cells.has(name) ? this._cells.get(name) : ABSENT;
     this._cells.set(name, canonicalize(value));
     if (meta === undefined) this.meta.delete(name);
     else {
       if (!isJSON(meta)) throw new TypeError('bind: meta must be JSON-serializable');
       this.meta.set(name, canonicalize(meta));
     }
+    this.history.push({ cell: name, before });
     this.emit('bind', name, this._cells.get(name));
     return name;
   }
@@ -132,16 +140,24 @@ export class QuiltKernel {
   }
 
   undo() {
-    // Global LIFO. Returns the restored value; null when nothing left to undo
-    // or only stale entries remain (cell was unbound after the entry).
+    // Global LIFO over apply/applyInverse/bind. Return convention:
+    //   restored value — a cell now holds this value
+    //   null           — a fresh bind was undone; the cell is gone (view → null)
+    //   undefined      — history is empty (degrade, never throw)
     while (this.history.length) {
       const h = this.history.pop();
-      if (!this._cells.has(h.cell)) continue;          // stale — skip
+      if (h.before === ABSENT) {
+        if (!this._cells.has(h.cell)) continue;         // already gone — stale
+        this._cells.delete(h.cell);
+        this.emit('undo', h.cell, null);
+        return null;
+      }
+      if (!this._cells.has(h.cell)) continue;           // stale — skip
       this._cells.set(h.cell, h.before);
       this.emit('undo', h.cell, h.before);
       return h.before;
     }
-    return null;
+    return undefined;
   }
 
   // ---------- DELETE ----------

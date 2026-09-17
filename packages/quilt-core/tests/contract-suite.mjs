@@ -137,6 +137,26 @@ export function runContractSuite(label, makeKernel) {
     assert.equal(k.view('counter'), 0);
   });
 
+  // ---------- CONTRACT v4: bind is undoable (everything is reversible) ----------
+  test(`${label}: undoing a fresh bind removes the cell (the address never existed)`, async () => {
+    const k = await mk();
+    k.bind('ghost', { room: 'attic' });
+    assert.equal(k.view('ghost').room, 'attic');
+    assert.equal(k.undo(), null);
+    assert.equal(k.view('ghost'), null, 'cell is gone, not just emptied');
+    assert.ok(!k.cells('').includes('ghost'), 'registry forgets the name');
+  });
+
+  test(`${label}: undoing an overwrite restores the prior value`, async () => {
+    const k = await mk();
+    k.bind('sediment', { gen: 1 });
+    k.bind('sediment', { gen: 2 });
+    assert.equal(k.view('sediment').gen, 2);
+    assert.equal(k.undo().gen, 1, 'overwrite undone');
+    assert.equal(k.undo(), null, 'fresh bind undone — cell removed');
+    assert.equal(k.view('sediment'), null);
+  });
+
   test(`${label}: undo is LIFO across multiple applies`, async () => {
     const k = await mk();
     k.bind('c', 0);
@@ -146,9 +166,9 @@ export function runContractSuite(label, makeKernel) {
     assert.equal(k.view('c'), 1);
   });
 
-  test(`${label}: undo on empty history returns null (degrade, never throw)`, async () => {
+  test(`${label}: undo on empty history returns undefined (degrade, never throw)`, async () => {
     const k = await mk();
-    assert.equal(k.undo(), null);
+    assert.equal(k.undo(), undefined, 'empty history — distinct from a removed cell (null)');
   });
 
   // ---------- TICK ----------
@@ -200,7 +220,7 @@ export function runContractSuite(label, makeKernel) {
     assert.equal(s.cells.tempo, 120);
     assert.equal(s.links.length, 1);
     assert.equal(s.ts, 4);
-    assert.equal(s.historyDepth, 0);
+    assert.equal(s.historyDepth, 2, 'binds are undoable since contract v4 — history covers everything');
     assert.equal(s.queued, 0);
   });
 

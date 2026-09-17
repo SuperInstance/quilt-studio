@@ -32,6 +32,8 @@ const require = createRequire(import.meta.url);
 const here = dirname(fileURLToPath(import.meta.url));
 const { WasmQuiltVM } = require(join(here, '../vendor/quilt_vm_wasm.cjs'));
 
+const ABSENT = Symbol('absent'); // cell did not exist before this bind
+
 export class WasmQuiltKernel {
   constructor() {
     this.vm = new WasmQuiltVM();
@@ -39,7 +41,7 @@ export class WasmQuiltKernel {
     this.meta = new Map();    // name -> JSON-canonical metadata
     this.edges = new Map();   // edgeId -> {from, to, type}
     this.ops = new Map();     // `${cell}::${op}` -> {forward, inverse}
-    this.history = [];        // {cell, before}
+    this.history = [];        // {cell, before | ABSENT}
     this.queue = [];          // {cell, op}
     this.listeners = new Set();
   }
@@ -63,6 +65,7 @@ export class WasmQuiltKernel {
   bind(name, value, meta = undefined) {
     assertName(name);
     if (!isJSON(value)) throw new TypeError('bind: value must be JSON-serializable');
+    const before = this._cells.has(name) ? JSON.parse(this.vm.view(name, '_kernel')) : ABSENT;
     const text = JSON.stringify(canonicalize(value));
     this.vm.bind(name, text);
     this._cells.add(name);
@@ -71,6 +74,7 @@ export class WasmQuiltKernel {
       if (!isJSON(meta)) throw new TypeError('bind: meta must be JSON-serializable');
       this.meta.set(name, canonicalize(meta));
     }
+    this.history.push({ cell: name, before });
     this.emit('bind', name, this.view(name));
     return name;
   }
@@ -153,14 +157,25 @@ export class WasmQuiltKernel {
   }
 
   undo() {
+    // Global LIFO over apply/applyInverse/bind. Return convention:
+    //   restored value — a cell now holds this value
+    //   null           — a fresh bind was undone; the cell is gone (WASM text
+    //                    stays inert, like unbind; view → null)
+    //   undefined      — history is empty (degrade, never throw)
     while (this.history.length) {
       const h = this.history.pop();
+      if (h.before === ABSENT) {
+        if (!this._cells.has(h.cell)) continue;
+        this._cells.delete(h.cell);
+        this.emit('undo', h.cell, null);
+        return null;
+      }
       if (!this._cells.has(h.cell)) continue;          // stale — skip
       this.vm.bind(h.cell, JSON.stringify(h.before));
       this.emit('undo', h.cell, h.before);
       return h.before;
     }
-    return null;
+    return undefined;
   }
 
   unbind(name) {

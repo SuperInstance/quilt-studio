@@ -1,0 +1,13 @@
+{
+  "name": "@quilt/floor",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "The golden-ratio substrate on the quilt kernel: Fibonacci floor (1D Penrose), phyllomandel field, Fibonacci clock, room-as-cell tenant.",
+  "scripts": {
+    "test": "node --test tests/"
+  },
+  "dependencies": {
+    "@quilt/core": "file:../quilt-core"
+  }
+}
