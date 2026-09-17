@@ -1,7 +1,7 @@
 // The golden mathematics, pinned. Pure module — no kernel.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { PHI, fibNum, word, wordCounts, lengthRatio, zeckendorf, zeckSum, convergentGaps } from '../src/golden.mjs';
+import { PHI, fibNum, word, wordCounts, lengthRatio, zeckendorf, zeckSum, zeckShift, convergentGaps } from '../src/golden.mjs';
 
 const EPS = 1e-9;
 
@@ -53,6 +53,20 @@ test('Zeckendorf: unique sums of non-consecutive Fibonacci numbers', () => {
     const key = terms.join(',');
     assert.ok(!seen.has(key), `n=${n}: representation is unique`);
     seen.add(key);
+  }
+});
+
+test('the Zeckendorf shift identity — the window becomes exact', () => {
+  // floor(a·φ) = Σ F(k+1) − ε, ε=1 iff the least Zeckendorf index is even.
+  // Probed case-by-case (a=2 breaks the naive −1), pinned to 3000 here.
+  for (let a = 0; a < 3000; a++) assert.equal(Math.floor(a * PHI), zeckShift(a), `a=${a}`);
+  // the strip's acceptance criterion falls out: {aφ} > 1/φ²
+  const invPhi2 = 1 / (PHI * PHI);
+  for (let a = 1; a < 3000; a++) {
+    const frac = a * PHI - Math.floor(a * PHI);
+    const b = Math.ceil(a * PHI - 1e-12);            // the strip's candidate b
+    const stripAccepts = (b - a * PHI) < 1 / PHI - 1e-9;
+    assert.equal(frac > invPhi2, stripAccepts, `a=${a}: window ⇔ Zeckendorf threshold`);
   }
 });
 

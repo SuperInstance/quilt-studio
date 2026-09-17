@@ -55,6 +55,20 @@ export function zeckendorf(n) {
   return terms; // indices k into F with F(2)=1, F(3)=2
 }
 
+// The Zeckendorf shift identity, which makes the strip's window EXACT:
+//   floor(a·φ) = (Σ F(k+1) over a's Zeckendorf terms) − ε,
+//   ε = 1 iff the LEAST Zeckendorf index is even, else 0 (and ε = 0 for a = 0).
+// Derived by probe, pinned by test over a < 3000 (golden.test.mjs).
+// Consequence: the strip accepts column a ≥ 1 iff {aφ} > 1/φ² — acceptance
+// is a Zeckendorf-threshold condition (the a = 0 column is the window's
+// closed-lower-edge boundary tile, always accepted).
+export function zeckShift(a) {
+  const terms = zeckendorf(a);
+  if (!terms.length) return 0;
+  const base = terms.reduce((s, k) => s + fibNum(k + 1), 0);
+  return base - (Math.min(...terms) % 2 === 0 ? 1 : 0);
+}
+
 export function zeckSum(terms) {
   return terms.reduce((s, k) => s + fibNum(k), 0);
 }
