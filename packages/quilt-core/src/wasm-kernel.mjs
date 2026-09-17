@@ -1,7 +1,8 @@
 // WasmQuiltKernel — the L1 adapter over quilt-vm-wasm's real WASM exports.
 //
-// CONTRACT v3 — same surface and semantics as reference-kernel.mjs.
-// The raw kernel (SuperInstance/quilt-vm-wasm, vendored in ../vendor) exposes
+// CONTRACT v5 — same surface and semantics as reference-kernel.mjs, sealed
+// by the differential fuzz (seed 42). The raw kernel (SuperInstance/quilt-vm-wasm,
+// vendored in ../vendor) exposes
 // the 5 opcodes as dumb storage: bind/link/effect/view/tick + stats/reachable.
 // The adapter owns the boundary:
 //
@@ -57,7 +58,10 @@ export class WasmQuiltKernel {
     for (const l of this.listeners) {
       if (l.cell !== null && l.cell !== cell) continue;
       if (l.kinds !== null && !l.kinds.has(kind)) continue;
-      try { l.fn({ kind, cell, value, ts: this.now() }); } catch { /* best-effort */ }
+      // Contract v5: every listener gets its OWN deep copy — one shared copy
+      // across listeners let A contaminate B (playtest finding).
+      const v = value === undefined ? undefined : canonicalize(value);
+      try { l.fn({ kind, cell, value: v, ts: this.now() }); } catch { /* best-effort */ }
     }
   }
 
@@ -100,6 +104,11 @@ export class WasmQuiltKernel {
   // ---------- LINK ----------
   link(a, b, type) {
     assertName(a); assertName(b);
+    if (typeof type !== 'string' || type.length === 0) {
+      const e = new TypeError('link: type must be a non-empty string');
+      e.code = 'MissingType';
+      throw e;
+    }
     if (!this._cells.has(a)) throw new Error(`UnknownCell: ${a}`);
     if (!this._cells.has(b)) throw new Error(`UnknownCell: ${b}`);
     const id = edgeId(a, b, type);
@@ -121,7 +130,10 @@ export class WasmQuiltKernel {
   }
 
   links(from = null) {
-    return [...this.edges.values()].filter(e => from === null || e.from === from);
+    // Contract v5: copies with ids — no mutable references escape.
+    return [...this.edges.entries()]
+      .map(([id, e]) => ({ id, ...e }))
+      .filter(e => from === null || e.from === from);
   }
 
   // ---------- EFFECT ----------
@@ -137,6 +149,12 @@ export class WasmQuiltKernel {
   apply(name, opName) {
     const op = this.ops.get(`${name}::${opName}`);
     if (!op) throw new Error(`UnknownOp: ${opName} on ${name}`);
+    // Contract v5: apply on a departed cell throws UnknownCell. The fuzz
+    // playtest caught the WASM ghost here: vm-side bind succeeded but the
+    // JS-side registry never learned the name, so the cell was visible in
+    // the apply RETURN yet absent from every view/snapshot. Throwing keeps
+    // the registry authoritative.
+    if (!this._cells.has(name)) throw new Error(`UnknownCell: ${name}`);
     const before = this.view(name);
     const after = canonicalize(op.forward(before));
     this.vm.bind(name, JSON.stringify(after));
@@ -148,6 +166,7 @@ export class WasmQuiltKernel {
   applyInverse(name, opName) {
     const op = this.ops.get(`${name}::${opName}`);
     if (!op) throw new Error(`UnknownOp: ${opName} on ${name}`);
+    if (!this._cells.has(name)) throw new Error(`UnknownCell: ${name}`);
     const before = this.view(name);
     const after = canonicalize(op.inverse(before));
     this.vm.bind(name, JSON.stringify(after));
@@ -201,6 +220,9 @@ export class WasmQuiltKernel {
     const applied = [];
     while (this.queue.length) {
       const { cell, op } = this.queue.shift();
+      // Degrade, never throw: a cell that departed between enqueue and
+      // flush silently drops its queued effects (mirrors reference).
+      if (!this._cells.has(cell)) continue;
       applied.push({ cell, op, value: this.apply(cell, op) });
     }
     this.emit('tick', null, { ts: this.now(), applied });

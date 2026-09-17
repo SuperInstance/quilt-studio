@@ -86,20 +86,58 @@ export class FibFloor {
     return { gen: this.gen, count: children.length };
   }
 
-  // Time travel: undo the gen-binds. Each generation ends with exactly one
-  // bind of floor.gen, so reflate(gens) costs O(gens) undos. Deterministic
-  // in both directions: re-deflating overwrites sediment with the same values.
+  // Reflation, v2 (playtest finding): explicit rebind, NOT global undo.
+  // The undo-stack version rewound ANY tenant's history it found interleaved
+  // (a FibClock lost ticks and kept its ts — inconsistent), and its 1e6-undo
+  // guard silently aborted deep refolds. Instead: unbind the live names past
+  // the target, rebind the target generation at its exact coordinates via
+  // the pure plan. Cost is honestly O(tiles rebalanced); foreign tenants
+  // are untouched; kernel history only GROWS. Rewind the floor with
+  // floor.reflate, never with kernel.undo — undo is one step, reflate is
+  // geology.
   reflate(gens = 1) {
     const target = Math.max(0, this.gen - gens);
-    let undos = 0;
-    // undo(): restored value | null (fresh bind removed) | undefined (empty).
-    // Only undefined means "stop" — null is a normal step (sediment removed).
-    while ((this.k.view('floor.gen') ?? 0) > target) {
-      const r = this.k.undo();
-      if (r === undefined || ++undos > 1e6) break;
+    if (target === this.gen) return { gen: this.gen, rebalanced: 0 };
+    const plan = FibFloor.plan(target);
+    const keep = new Set(plan.map(t => t.name));
+    let unbound = 0;
+    // unbind every live hierarchical name the target generation does not
+    // use — unbind's edge sweep also retires their 'next' links
+    for (const t of FibFloor.plan(this.gen))
+      if (!keep.has(t.name)) { this.k.unbind(t.name); unbound++; }
+    // re-stamp the target generation's names at their exact coordinates
+    // (same value shape deflate writes, so regrowth is bit-identical)
+    for (const t of plan)
+      this.k.bind(t.name, { kind: t.kind, x0: t.x0, len: t.len, gen: target }, { index: t.index, ...addressOf(t.index) });
+    this.k.bind('floor.gen', target);
+    this.gen = target;
+    return { gen: this.gen, rebalanced: unbound };
+  }
+
+  // Pure forward plan at generation g — the exact tile layout deflate()
+  // produces, without touching a kernel. Reflation replays it; tests diff
+  // against it. Names are HIERARCHICAL (tile 3's first child is floor.3.0),
+  // stamped with the same {kind,x0,len,gen} value shape and the same
+  // post-sort address index deflate assigns. Bitwise parity is the point:
+  // a refolded floor must regrow identically to one that never moved.
+  static plan(gen) {
+    const scale = 1 / PHI;
+    let tiles = [{ name: 'floor.0', kind: 'A', x0: 0, len: 1, gen: 0, index: 0 }];
+    for (let g = 1; g <= gen; g++) {
+      const next = [];
+      for (const t of tiles) {
+        if (t.kind === 'A') {
+          next.push({ name: `${t.name}.0`, kind: 'A', x0: t.x0, len: t.len * scale, gen: g });
+          next.push({ name: `${t.name}.1`, kind: 'B', x0: t.x0 + t.len * scale, len: t.len * scale * scale, gen: g });
+        } else {
+          next.push({ name: `${t.name}.0`, kind: 'A', x0: t.x0, len: t.len, gen: g });
+        }
+      }
+      next.sort((a, b) => a.x0 - b.x0);      // live order = index, as deflate()
+      next.forEach((t, i) => { t.index = i; });
+      tiles = next;
     }
-    this.gen = this.k.view('floor.gen') ?? 0;
-    return { gen: this.gen, undos };
+    return tiles;
   }
 
   // The golden-direction walk (the essay's recall): start at the i-th live

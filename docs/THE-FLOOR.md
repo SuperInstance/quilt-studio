@@ -68,12 +68,18 @@ does not forget because the floor does not store. The floor IS." On the
 kernel this reads literally: there is no side table of generations, only
 cells.
 
-**Time travel.** Reflation is `kernel.undo()` — which, since contract v4,
-covers `bind` as well as effects. Undoing a fresh bind removes the cell
-(the address never existed); undoing an overwrite restores the prior
-value. `reflate(2)` costs O(generations) undos, and re-deflating
-overwrites sediment with identical values — the regrow test compares
-full JSON. History IS the future.
+**Time travel.** Reflation is explicit rebind, NOT `kernel.undo()` — a
+hard-won distinction the round-4 playtester earned us. The undo-stack
+version rewound whatever history it found: an interleaved FibClock lost
+ticks yet kept its `ts`, silently inconsistent, and its 1e6-undo guard
+aborted deep refolds without a word. Now `reflate(g)` recomputes the
+target generation with the pure `FibFloor.plan(g)` (same ops, same
+order, bit-identical) — unbinding the live hierarchical names the
+target doesn't use and re-stamping those it does. Cost is honestly
+O(tiles rebalanced); foreign tenants are untouched; kernel history only
+grows. Undo is one step; reflate is geology. Re-deflating from a
+refolded floor overwrites sediment with identical values — the regrow
+test compares full JSON. History IS the future.
 
 **The golden-direction walk** (the essay's recall) composes phyllotaxis
 addresses along the floor — one address space shared with the field

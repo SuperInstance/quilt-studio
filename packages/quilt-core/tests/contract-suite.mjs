@@ -61,7 +61,7 @@ export function runContractSuite(label, makeKernel) {
     k.bind('a', 1); k.bind('b', 2);
     const id = k.link('a', 'b', 'feeds');
     assert.equal(id, 'a->b:feeds');
-    assert.deepEqual(k.links(), [{ from: 'a', to: 'b', type: 'feeds' }]);
+    assert.deepEqual(k.links(), [{ id: 'a->b:feeds', from: 'a', to: 'b', type: 'feeds' }]);
   });
 
   test(`${label}: link is idempotent for duplicate (a,b,type)`, async () => {
@@ -207,6 +207,67 @@ export function runContractSuite(label, makeKernel) {
     k.tick(0);
     k.tick(0);
     assert.equal(k.view('a'), 1, 'second tick flushes nothing new');
+  });
+
+  test(`${label}: contract v5 — apply on a departed cell throws UnknownCell`, async () => {
+    const k = await mk();
+    k.bind('ghost', 1);
+    k.effect('ghost', 'boo', v => v + 1, v => v - 1);
+    // undo the fresh bind: cell gone, the op deliberately survives (ops are
+    // unbind-scoped, not bind-scoped) so the cell guard is what fires.
+    k.undo();
+    assert.equal(k.view('ghost'), null);
+    assert.throws(() => k.apply('ghost', 'boo'), /UnknownCell/, 'direct apply');
+    assert.throws(() => k.applyInverse('ghost', 'boo'), /UnknownCell/, 'direct applyInverse');
+  });
+
+  test(`${label}: contract v5 — a cell departing between enqueue and flush drops its effects`, async () => {
+    const k = await mk();
+    k.bind('mayfly', 1);
+    k.effect('mayfly', 'inc', v => v + 1, v => v - 1);
+    k.queueEffect('mayfly', 'inc');
+    k.unbind('mayfly');
+    const r = k.tick(1);               // degrade, never throw
+    assert.equal(r.applied.length, 0, 'no phantom apply');
+    assert.equal(k.view('mayfly'), null, 'and no phantom cell');
+  });
+
+  test(`${label}: contract v5 — event payloads are private copies per listener`, async () => {
+    const k = await mk();
+    k.bind('mixer', { level: 1 });
+    const seen = [];
+    const offA = k.subscribe(e => { if (e.kind === 'bind' && e.cell === 'mixer') e.value.level = 999; }, { cell: 'mixer' });
+    const offB = k.subscribe(e => { if (e.kind === 'bind' && e.cell === 'mixer') seen.push(e.value.level); }, { cell: 'mixer' });
+    k.bind('mixer', { level: 2 });
+    offA(); offB();
+    assert.equal(k.view('mixer').level, 2, 'a mutating listener cannot corrupt the kernel');
+    assert.deepEqual(seen, [2], 'listener B sees the pristine value, not A\'s mutation');
+  });
+
+  test(`${label}: contract v5 — links() hands out copies`, async () => {
+    const k = await mk();
+    k.bind('a', 1); k.bind('b', 2);
+    k.link('a', 'b', 'feeds');
+    const ls = k.links();
+    ls[0].type = 'HACKED';
+    ls.push({ id: 'fake' });
+    const again = k.links();
+    assert.equal(again.length, 1, 'array mutations do not leak in');
+    assert.equal(again[0].type, 'feeds', 'record mutations do not leak in');
+    assert.equal(typeof again[0].id, 'string', 'ids are part of the record now');
+  });
+
+  test(`${label}: contract v5 — link without a type is a greppable error`, async () => {
+    const k = await mk();
+    k.bind('a', 1); k.bind('b', 2);
+    for (const bad of [undefined, '', 42]) {
+      try {
+        k.link('a', 'b', bad);
+        assert.fail(`link(${bad}) should throw`);
+      } catch (e) {
+        assert.equal(e.code, 'MissingType', `code MissingType for ${bad}`);
+      }
+    }
   });
 
   // ---------- snapshot (Tide-Pool distillation hook) ----------

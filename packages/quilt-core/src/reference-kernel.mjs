@@ -1,20 +1,31 @@
 // QuiltKernel — the L1 kernel contract in executable form (reference implementation).
 //
-// CONTRACT v3 — the L2 surface: subscriptions, batch reads, metadata.
+// CONTRACT v5 — hardened by the round-4 playtester, sealed by the
+// differential fuzz (tests/differential-fuzz.test.mjs, seed 42, 400 ops,
+// reference ≡ WASM step-for-step).
 // Any kernel is quilt-compatible iff it passes tests/contract-suite.mjs unmodified.
 //
 // Design constraints (do not soften without a version bump):
 //   - ESM only, zero dependencies, importable in Node and the browser.
 //   - Pure JS; if the WASM adapter diverges from this file, THIS file is wrong.
-//   - Degrade, never throw: view/undo of unknown → null.
+//   - Degrade, never throw: view/undo of unknown → null; unlink of unknown →
+//     false; a cell departing between queueEffect and tick silently drops its
+//     queued effects.
+//   - Mutations on missing cells throw: bind(effect/apply/applyInverse) on a
+//     departed cell → UnknownCell (apply-on-missing used to re-create phantom
+//     cells whose undo resurrected nulls — the fuzz step-282 ghost).
 //   - Values are JSON-canonical (value semantics): bind snapshots; view returns
-//     a FRESH copy (mutating a view result never touches kernel state);
-//     NaN/±Infinity canonicalize to null, per JSON.stringify semantics.
-// Errors carry greppable names: UnknownCell / UnknownOp.
+//     a FRESH copy; EVENTS also carry per-listener private copies — one shared
+//     event object let subscriber A corrupt subscriber B and the kernel itself.
+//   - NaN/±Infinity canonicalize to null, per JSON.stringify semantics.
+//   - Errors carry greppable names AND codes: UnknownCell / UnknownOp /
+//     MissingType (e.code, on TypeError for programmer errors).
+//   - links() returns copies with ids — no mutable kernel records escape.
 //   - undo() is global LIFO over apply, applyInverse, AND bind: everything is
-//     reversible. Undoing a fresh bind removes the cell (the address never
-//     existed); undoing an overwrite restores the prior value. The floor's
-//     time travel runs on this.
+//     reversible. Undoing a fresh bind removes the cell; undoing an overwrite
+//     restores the prior value. It rewinds ONE step of anything — tenants that
+//     need geology (multi-generation rewind) must rebind explicitly, like
+//     FibFloor.reflate does; leaning on undo() eats interleaved tenants.
 //   - Subscriptions are synchronous and best-effort: a throwing listener is
 //     skipped, never propagated into the mutation that fired it.
 
@@ -45,7 +56,12 @@ export class QuiltKernel {
     for (const l of this.listeners) {
       if (l.cell !== null && l.cell !== cell) continue;
       if (l.kinds !== null && !l.kinds.has(kind)) continue;
-      try { l.fn({ kind, cell, value, ts: this._ts }); } catch { /* best-effort */ }
+      // Contract v5: every listener gets its OWN deep copy. Handing out live
+      // internal state lets a subscriber corrupt the kernel; handing one
+      // shared copy lets listener A contaminate listener B. view() already
+      // cloned; events now match.
+      const v = value === undefined ? undefined : canonicalize(value);
+      try { l.fn({ kind, cell, value: v, ts: this._ts }); } catch { /* best-effort */ }
     }
   }
 
@@ -85,6 +101,11 @@ export class QuiltKernel {
   // ---------- LINK ----------
   link(a, b, type) {
     assertName(a); assertName(b);
+    if (typeof type !== 'string' || type.length === 0) {
+      const e = new TypeError('link: type must be a non-empty string');
+      e.code = 'MissingType';
+      throw e;
+    }
     if (!this._cells.has(a)) throw new Error(`UnknownCell: ${a}`);
     if (!this._cells.has(b)) throw new Error(`UnknownCell: ${b}`);
     const id = edgeId(a, b, type);
@@ -105,7 +126,12 @@ export class QuiltKernel {
   }
 
   links(from = null) {
-    return [...this.edges.values()].filter(e => from === null || e.from === from);
+    // Contract v5: copies — the caller must not hold mutable references to
+    // the kernel's edge records (playtest: mutating a returned record
+    // silently rewired the graph).
+    return [...this.edges.entries()]
+      .map(([id, e]) => ({ id, ...e }))
+      .filter(e => from === null || e.from === from);
   }
 
   // ---------- EFFECT ----------
@@ -120,6 +146,13 @@ export class QuiltKernel {
   apply(name, opName) {
     const op = this.ops.get(`${name}::${opName}`);
     if (!op) throw new Error(`UnknownOp: ${opName} on ${name}`);
+    // Contract v5: apply on a departed cell throws (the fuzz playtest caught
+    // apply-on-missing silently RE-CREATING the cell with forward(null) —
+    // and recording before=null as if null were a real prior value, which
+    // made undo resurrect a phantom). queueEffect guards at enqueue; this
+    // guards the direct call. tick() degrades on cells that depart between
+    // enqueue and flush.
+    if (!this._cells.has(name)) throw new Error(`UnknownCell: ${name}`);
     const before = this.view(name);
     const after = canonicalize(op.forward(before));
     this._cells.set(name, after);
@@ -131,6 +164,7 @@ export class QuiltKernel {
   applyInverse(name, opName) {
     const op = this.ops.get(`${name}::${opName}`);
     if (!op) throw new Error(`UnknownOp: ${opName} on ${name}`);
+    if (!this._cells.has(name)) throw new Error(`UnknownCell: ${name}`);
     const before = this.view(name);
     const after = canonicalize(op.inverse(before));
     this._cells.set(name, after);
@@ -185,6 +219,9 @@ export class QuiltKernel {
     const applied = [];
     while (this.queue.length) {
       const { cell, op } = this.queue.shift();
+      // Degrade, never throw: a cell that departed between enqueue and
+      // flush (unbind/undo of its bind) silently drops its queued effects.
+      if (!this._cells.has(cell)) continue;
       applied.push({ cell, op, value: this.apply(cell, op) });
     }
     this.emit('tick', null, { ts: this._ts, applied });

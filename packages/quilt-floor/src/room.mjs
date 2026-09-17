@@ -23,14 +23,20 @@ export function hostRoom(kernel, { name = 'room.tap', seat = 0 } = {}) {
   return { name, address };
 }
 
+// Presence and vibe degrade, never throw: admitting a patron to a room
+// that was never hosted (or was unbound) returns false — rooms come and go.
 export function admit(kernel, name, patron) {
   const room = kernel.view(name);
+  if (!room) return false;
   room.presence.push(patron);
   kernel.bind(name, room);
+  return true;
 }
 
 export function setTide(kernel, name, tide) {
   const room = kernel.view(name);
+  if (!room) return false;
   room.tide = Math.max(-1, Math.min(1, tide));
   kernel.bind(name, room);
+  return true;
 }

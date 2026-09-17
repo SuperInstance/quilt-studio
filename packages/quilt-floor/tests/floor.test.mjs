@@ -7,6 +7,7 @@ import { QuiltKernel } from '../../quilt-core/src/reference-kernel.mjs';
 import { WasmQuiltKernel } from '../../quilt-core/src/wasm-kernel.mjs';
 import { FibFloor, expectedWord, PHI } from '../src/fibfloor.mjs';
 import { addressOf, GOLDEN_ANGLE } from '../src/address.mjs';
+import { hostRoom, admit, setTide } from '../src/room.mjs';
 
 const kernels = [['reference', QuiltKernel], ['wasm', WasmQuiltKernel]];
 
@@ -68,7 +69,7 @@ for (const [label, K] of kernels) {
     assert.equal(k.now(), 2, 'ts == gen — one clock, both meanings');
   });
 
-  test(`${label}: reflation via undo restores the lineage (the floor does not forget)`, () => {
+  test(`${label}: reflation restores the lineage (the floor does not forget)`, () => {
     const floor = new FibFloor(new K());
     floor.deflate(); floor.deflate(); floor.deflate(); floor.deflate();
     assert.equal(floor.layout(), expectedWord(4));
@@ -89,6 +90,55 @@ for (const [label, K] of kernels) {
     assert.equal(floor.layout(), expectedWord(4));
     const second = floor.intervals().map(t => JSON.stringify(t)).join('|');
     assert.equal(second, first, 'history IS future: sediment overwritten with the same values');
+  });
+
+  test(`${label}: reflation is geology, not vandalism — foreign tenants untouched`, () => {
+    const k = new K();
+    const floor = new FibFloor(k);
+    for (let i = 0; i < 8; i++) floor.deflate();
+    // a foreign tenant moves in and writes its own history
+    k.bind('clock.n', 6);
+    for (let i = 0; i < 4; i++) k.bind('clock.n', k.view('clock.n') + 1);
+    const foreignBefore = JSON.stringify(k.view('clock.n'));
+    const histBefore = k.history.length;
+    const r = floor.reflate(5);
+    assert.equal(r.gen, 3);
+    assert.equal(JSON.stringify(k.view('clock.n')), foreignBefore, 'the clock never lost a tick');
+    assert.ok(k.history.length > histBefore, 'reflation appends; it never eats foreign history');
+    assert.equal(floor.layout(), expectedWord(3), 'and the floor really is gen 3 again');
+  });
+
+  test(`${label}: reflation lands on the exact plan, and regrowth returns home`, () => {
+    const k = new K();
+    const floor = new FibFloor(k);
+    for (let i = 0; i < 8; i++) floor.deflate();
+    const straight = new FibFloor(new K());
+    for (let i = 0; i < 8; i++) straight.deflate();
+    floor.reflate(5);
+    const planTiles = FibFloor.plan(3);
+    const got = floor.intervals();
+    assert.equal(got.length, planTiles.length);
+    for (let i = 0; i < got.length; i++) {
+      assert.equal(got[i].name, planTiles[i].name, `tile ${i} hierarchical name`);
+      assert.equal(got[i].kind, planTiles[i].kind);
+      assert.ok(Math.abs(got[i].x0 - planTiles[i].x0) < 1e-12, `tile ${i} x0 on plan`);
+      assert.equal(k.metaOf(got[i].name).index, planTiles[i].index, `tile ${i} address index`);
+    }
+    // regrowing the refolded floor 5 generations reaches gen 8 — identical
+    // to a floor that walked straight there
+    for (let i = 0; i < 5; i++) floor.deflate();
+    const refolded = floor.intervals().map(t => JSON.stringify(t)).join('|');
+    const direct = straight.intervals().map(t => JSON.stringify(t)).join('|');
+    assert.equal(refolded, direct, 'time travel stays bit-exact');
+  });
+
+  test(`${label}: rooms degrade — admitting to an unhosted room returns false`, () => {
+    const k = new K();
+    assert.equal(admit(k, 'room.tap', 'crab'), false, 'no room, no throw');
+    assert.equal(setTide(k, 'room.tap', 0.5), false);
+    const { name } = hostRoom(k);
+    assert.equal(admit(k, name, 'crab'), true);
+    assert.equal(setTide(k, name, 0.5), true);
   });
 
   test(`${label}: the golden-direction walk composes addresses; adjacency is linked`, () => {
