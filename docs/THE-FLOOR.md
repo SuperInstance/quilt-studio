@@ -356,3 +356,39 @@ Higher-rank alphabets (N=7's rank-3 ring) suggest richer per-symbol
 payloads — the compression story Casey is pointing at — but symbol-coding
 capacity is NOT yet pinned. The scaling law that IS pinned: alphabets grow
 with N, machinery doesn't.
+
+## 10. The twist field — twist-engine's instrument seated on the floor
+
+The two repos share ONE instrument now. twist-engine app.js defines
+registration R = mean gaussian alignment (σ = 0.24·s, spatial hash at
+0.6·s, s = mean nearest-neighbor spacing). `src/twistfield.mjs` runs that
+EXACT law on the Penrose vertex set: rotate the core vertices by θ,
+measure alignment against the unrotated floor. Laws, probe-pinned
+(tests/twistfield.test.mjs):
+
+**Identity.** R(0) = 1 to 1e-12.
+
+**The cloud law.** For θ ≲ 2°, R(θ) ≈ exp(−⟨r²⟩θ² / 2σ²) — each rotated
+point's nearest is itself, displacement r·θ, gaussian-averaged. Verified
+against measured values to 0.06% at 1° and 0.89% at 2°, with ⟨r²⟩ taken
+from the data (2.1866 at reach 8), not asserted.
+
+**The fingerprint.** Beyond ~2.5° truth deviates UP from the cloud law —
+rotated vertices land near OTHER vertex species, and the deviation grows
+monotonically through 6°. The deviation curve is the lattice's rotational
+fingerprint, and it is γ-independent (two generic offsets agree within
+tolerance): universal for generic floors.
+
+**Killed by the same probe** (the discipline cuts both ways):
+- Fine magic-window teeth in 0–1°: NONE at 0.02° resolution. The golden
+  lattice's twist falloff is smooth. (The comb's teeth live in
+  spacing-space — a different parameter; both truths coexist.)
+- Large-θ commensuration peaks: the naive sweep's S-minimum sits at 24°,
+  but that is a disk-rim artifact — the finite viewport swamps registration
+  beyond σ/r_max ≈ 2.2°. twist-engine itself only runs θ ∈ [0.15°, 6°];
+  the floor instrument stays in the same validated regime.
+
+Synergy: the floor gives twist-engine a quasiperiodic substrate with
+locational codes; twist-engine gives the floor a commensuration
+instrument. QUILT_NOTES.md's theorem — "both count the holes" — now has a
+second shared object: both measure the alignment.
