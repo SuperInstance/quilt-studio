@@ -1,0 +1,28 @@
+# Crabbox jobs — run any quilt suite on a warm box, from a dirty checkout,
+# with streamed evidence. `crabbox job run <name>`; flags override config
+# (e.g. --provider ssh --id fleet-box). The command strings are byte-identical
+# to .github/workflows/test.yml — CI and the box run the same suite.
+jobs:
+  core-suite:
+    provider: local-container
+    localContainer:
+      image: node:22-bookworm
+    shell: true
+    command: cd packages/quilt-core && npm ci && npm test
+    stop: always
+  floor-suite:
+    provider: local-container
+    localContainer:
+      image: node:22-bookworm
+    shell: true
+    command: cd packages/quilt-floor && npm ci && npm test
+    stop: always
+  full-suite:
+    provider: local-container
+    localContainer:
+      image: node:22-bookworm
+    shell: true
+    command: >
+      cd packages/quilt-core && npm ci && npm test &&
+      cd ../quilt-floor && npm ci && npm test
+    stop: always

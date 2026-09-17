@@ -14,7 +14,7 @@ jobs:
         with:
           node-version: 22
       - name: quilt-core contract suite (reference + WASM, differential fuzz)
-        run: cd packages/quilt-core && npm test
+        run: cd packages/quilt-core && npm ci && npm test
 
   quilt-floor:
     runs-on: ubuntu-latest
@@ -24,4 +24,4 @@ jobs:
         with:
           node-version: 22
       - name: quilt-floor suite (both kernels + repo-claims doc drift guard)
-        run: cd packages/quilt-floor && npm test
+        run: cd packages/quilt-floor && npm ci && npm test
