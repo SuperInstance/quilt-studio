@@ -1,0 +1,27 @@
+name: test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  quilt-core:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: quilt-core contract suite (reference + WASM, differential fuzz)
+        run: cd packages/quilt-core && npm test
+
+  quilt-floor:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: quilt-floor suite (both kernels + repo-claims doc drift guard)
+        run: cd packages/quilt-floor && npm test
