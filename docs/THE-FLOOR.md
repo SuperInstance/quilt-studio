@@ -255,8 +255,15 @@ three readings: generation (structure), moment (accumulation), iteration
 2. ✅ **Multigrid** (phase 2, shipped): the Penrose crystal as kernel
    tenant; the golden-gap iceberg law above. Twist listener and field
    placement remain.
-3. **Twist listener**: feed `convergentGaps` teeth into a live kernel
-   cell, let a render view (L2 `subscribe`) draw the comb as it computes.
+3. ✅ **Twist listener — SHIPPED 2026-09-17** (`src/twistlisten.mjs`): binds
+   `twist.teeth` / `twist.gapRatio` / `twist.delta` / `twist.detuned`, exposes
+   `listen(fn)` (L2 subscribe, contract-v5 private copies per listener). It
+   measures the two smallest distinct core intercept gaps off the live
+   multigrid — the true grid yields φ to fp precision at any reach, a
+   detuned grid is flagged. `delta` = |gapRatio − best tooth|: the crystal
+   hums exactly φ, the ladder climbs toward it, extending the comb shrinks
+   the delta. Suite 79/79 on both kernels, incl. the deep identity
+   err·F_n² → 1 (the classic |φ − p/q| < 1/q² convergent estimate).
 4. **Field on the floor**: place Phyllomandel orbiters at 2D floor
    vertices — the address space generalizes (Vogel → Penrose vertex
    numbering).
@@ -272,6 +279,7 @@ three readings: generation (structure), moment (accumulation), iteration
 | `src/phyllomandel.mjs` | the field: orbits on the golden spiral |
 | `src/fibclock.mjs` | the clock: Zeckendorf hours on the kernel tick |
 | `src/comb.mjs` | TWIST's instrument as a live tenant (L2 subscribe) |
+| `src/twistlisten.mjs` | twist listener — three voices, one φ; L2 `listen()` |
 | `src/multigrid.mjs` | the 2D floor: de Bruijn multigrid → Penrose dual, golden gaps |
 | `src/room.mjs` | the tenant: room-as-cell on the floor |
 | `tests/*.test.mjs` | 70 tests × both kernels; golden math pinned separately |
