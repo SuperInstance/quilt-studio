@@ -313,3 +313,46 @@ every gap is m·p + n·q for small integers m, n (search-pinned, exact to
 The 1D floor's alphabet was a word over two letters; the 2D vertex address
 alphabet is their integer span. A detuned crystal leaves the module — the
 law discriminates, as every floor law must.
+
+## 9. Scaling — one machinery, many alphabets, and the lift as the code
+
+Casey's challenge (2026-09-17): Penrose generalizes to arbitrary dimension;
+abstract high-dimensional structure can be encoded INTO the locational
+tiling; interference + twisting open compression and seek-time reductions.
+
+What the floor proves today, probe-pinned (tests/nscaling.test.mjs):
+
+**One machinery, many alphabets.** The multigrid class is N-generic, and
+the probe scaled it without a single geometry fix:
+| N | crystal | edge law | gap ring |
+|---|---------|----------|----------|
+| 5 | Penrose | exactly 2/5 | Z[φ] — rank 2 |
+| 7 | heptagonal | exactly 2/7 | Z[2cos π/7] — ratios 1.80194, 1.24698 pinned |
+| 8 | Ammann–Beenker | exactly 2/8 | Z[√2] family |
+| 10 | decagonal | exactly 2/10 | 1+2cos(π/10) = 2.90211 pinned |
+
+Every N-fold symmetry brings its own algebraic number field — its own
+compression alphabet — and the SAME code sings all of them.
+
+**The interference pattern.** The arrangement literally is one: N phase
+gratings, and quantize(p) = (⌊nₖ·p − γₖ⌋) demodulates any point into its
+Z^N lift in O(N) floor operations. Probed honest: interior points
+round-trip 100% (7670/7670 — constructional), and the strip-center K(j)
+resolves within exactly one dual edge (max 0.400000 = 2/N), because de
+Bruijn's least-squares point is not an interior guarantee (2057/3069 — a
+theorem-memory corrected by probe, as designed).
+
+**The hologram, literal.** A 2D location encodes its full N-dimensional
+preimage: LocStore writes payloads by lift (the Z^N address) and reads them
+by any 2D point in the face — zero seek, the geometry is the index. This
+IS the "child's-play holographic principle": the part carries the whole's
+coordinates, verifiably.
+
+**Built next / not yet built.** A genuine 3D icosahedral crystal (Z⁶
+projected to R³ — the real quasicrystal) needs the multigrid embedded in
+R³ instead of R²; the mathematics transfers wholesale (faces ↔ vertices,
+same dual, same lift machinery) but normals/positions are 3-vectors.
+Higher-rank alphabets (N=7's rank-3 ring) suggest richer per-symbol
+payloads — the compression story Casey is pointing at — but symbol-coding
+capacity is NOT yet pinned. The scaling law that IS pinned: alphabets grow
+with N, machinery doesn't.
