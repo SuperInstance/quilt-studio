@@ -430,3 +430,41 @@ chord metric was hiding 4.1% of communication cost) — they become exact
 rational arcs with a true arc-length referee. B2 twist-along-arc and B3
 ℚ¹⁶ breed trajectories (the duke-lab/tidepool 16-dim collision) sample
 along this seam with no coordinate change.
+
+## 12. The twist along the seam — B2 (twistfield.mjs, the instrument generalized)
+
+twist-engine rotates about the ORIGIN. Between two quilt spaces the rotation
+center GLIDES along the seam — so the instrument is generalized, semantics
+verbatim otherwise: `registrationAbout(c, θ)` rotates about an arbitrary
+station, and `TwistField.sampleAlong(curve, {n, θ})` samples the twist
+budget along an IARS arc. Laws (tests/twistalong.test.mjs, tolerances
+measured by probe 2026-09-19):
+
+**Center equivariance.** About c = 0 the generalized instrument recovers
+registration(θ) bit-for-bit.
+
+**The cloud law carries to ANY station — per-point.** A rotation about c
+displaces point p by exactly |p−c|·θ, so while "nearest is itself" holds,
+R ≈ mean_p exp(−|p−c|²θ²/2σ²). This tracks the instrument to 0.35% at
+every station tried (centroid to off-disk), θ ≤ 2°. The naive ⟨r²⟩
+closed form does NOT carry: it degrades to 15.7% at the off-disk station
+at 2° — pinned as an anti-vacuity proof. The Jensen gap is geometry; the
+seam law must be per-point.
+
+**The alignment budget decays along the seam.** Marching the station
+outward, R decreases strictly and is halved by the rim at 2°.
+
+**The fingerprint reproduces about a moving center.** Beyond the twist
+regime the deviation from the per-point cloud is positive and grows
+3°→6°, about the centroid and about (0.9, 0.3) alike — cross-alignment
+is a property of the lattice, not of where you stand on it.
+
+**The full seam loop closes on both kernels.** spline → hostTrace → read
+stations back from the hosted trace AND from the ℚ lift AND from direct
+ℚ sampling — three paths, bit-identical instrument readings. The kernel
+tenancy is lossless for the analogue instrument; the hosted trace IS the
+seam's substrate.
+
+Synergy: B2 is the flagship seam — quilt-gan's fabric arcs become seams
+the twist instrument can read; hermit's canon edges get an alignment
+budget; B3's ℚ¹⁶ breed trajectories sample along the same law.
