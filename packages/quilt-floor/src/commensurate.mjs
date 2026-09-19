@@ -29,6 +29,16 @@ export function makeRat(num, den = 1n) {
 export const ratToNumber = r => Number(r.num) / Number(r.den);
 export const ratToString = r => `${r.num}/${r.den}`;
 export const ratAbs = r => r.num < 0n ? makeRat(-r.num, r.den) : r;
+export const ratNeg = r => makeRat(-r.num, r.den);
+export const ratSign = r => r.num < 0n ? -1 : r.num > 0n ? 1 : 0;
+export const ratIsZero = r => r.num === 0n;
+export const ratEq = (a, b) => a.num * b.den === b.num * a.den;
+export const ratAdd = (a, b) => makeRat(a.num * b.den + b.num * a.den, a.den * b.den);
+export const ratMul = (a, b) => makeRat(a.num * b.num, a.den * b.den);
+export const ratDiv = (a, b) => {
+  if (b.num === 0n) throw new Error('rat: division by zero');
+  return makeRat(a.num * b.den, a.den * b.num);
+};
 export const ratSub = (a, b) => makeRat(a.num * b.den - b.num * a.den, a.den * b.den);
 export const ratCmp = (a, b) => {
   const d = a.num * b.den - b.num * a.den;

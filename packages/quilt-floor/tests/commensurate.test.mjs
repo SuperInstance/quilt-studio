@@ -3,7 +3,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   makeRat, floatToRat, ratToNumber, ratToString, ratSub, ratAbs, ratCmp,
-  continuedFraction, nearestRational,
+  continuedFraction, nearestRational, ratAdd, ratMul, ratDiv, ratNeg, ratEq, ratIsZero,
 } from '../src/commensurate.mjs';
 import { PHI } from '../src/golden.mjs';
 
@@ -62,4 +62,15 @@ test('nearestRational degenerate cases: integers, zero, and 355/113 at den ≤ 2
   assert.equal(ratToString(nearestRational(0, 20).rat), '0/1');
   // π's famous shadow: 355/113 needs den 113; at maxDen 20 the king is 22/7
   assert.equal(ratToString(nearestRational(makeRat(355, 113), 20).rat), '22/7');
+});
+
+test('the spline algebra: ratAdd/ratMul/ratDiv/ratNeg/ratEq/ratIsZero — exact field operations', () => {
+  const third = makeRat(1n, 3n), sixth = makeRat(1n, 6n), half = makeRat(1n, 2n);
+  assert.ok(ratEq(ratAdd(third, sixth), half), '1/3 + 1/6 = 1/2 exactly');
+  assert.ok(ratEq(ratMul(makeRat(2n, 3n), makeRat(3n, 4n)), half), '(2/3)(3/4) = 1/2 exactly');
+  assert.ok(ratEq(ratDiv(half, third), makeRat(3n, 2n)), '(1/2)/(1/3) = 3/2 exactly');
+  assert.ok(ratEq(ratNeg(third), makeRat(-1n, 3n)), '−(1/3)');
+  assert.ok(ratEq(makeRat(2n, 4n), half), 'ratEq crosses representation');
+  assert.ok(ratIsZero(ratSub(third, third)), 'x − x = 0 exactly');
+  assert.throws(() => ratDiv(half, makeRat(0n)), /division by zero/);
 });

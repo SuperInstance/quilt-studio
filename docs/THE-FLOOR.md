@@ -392,3 +392,41 @@ Synergy: the floor gives twist-engine a quasiperiodic substrate with
 locational codes; twist-engine gives the floor a commensuration
 instrument. QUILT_NOTES.md's theorem — "both count the holes" — now has a
 second shared object: both measure the alignment.
+
+## 11. The analogue seam — IARS (spline.mjs)
+
+The fleet's spaces are exact discrete worlds stitched by ad-hoc teleports.
+`src/spline.mjs` is the missing continuous layer between them, under one
+doctrine: **integers own identity; rationals own motion; floats only
+measure.**
+
+- controls = native identities, lifted to ℚ (exact integers preferred)
+- knots = ℚ — knot multiplicity is the smoothness dial (mult k ⇒ C^{p−k})
+- weights = ℚ — the 3-4-5 arc (cos Δ/2 = 4/5) makes a rational quadratic
+  an EXACT circle: every evaluated point satisfies |p−c|² = r² with a
+  BigInt zero, no tolerance. Non-Pythagorean weights have no rational
+  shadow: measure honestly, flag it (same stance as π in golden.mjs)
+- evaluation = BigInt-rational de Boor (Piegl A2.1–A2.3) — no f64 in the
+  pipeline; a discrete hop (`snap`) is the rounding of a continuous motion,
+  derived, never hand-carried
+- derivatives are exact rationals: C′ and C″ feed `curvatureMeasure`
+  (κ = |det(C′,C″)|/|C′|³) — the v4 fabric grammar's Δ_max kill-veto reads
+  from here; the dersBasisFuns row-swap lives INSIDE the k-loop (A2.3),
+  and a row-shape test pins the [null,null,2] corruption class that would
+  otherwise silently null every curvature veto
+- arc length is a MEASURE (`arcLengthMeasure`, adaptive Simpson on the
+  exact speed function) — a float, never an identity
+- tenancy: `hostTrace` hosts n+1 samples as cells — float x,y is the view,
+  the ℚ lift is the identity, motion is `next` links — and the hosted
+  trace is byte-identical on both kernels
+
+Pinned by tests/spline.test.mjs, both kernels, including two anti-vacuity
+proofs: a 9/10 weight breaks the exact-circle property (the Pythagorean
+specificity is load-bearing), and float contamination (0.8 ≠ 4/5) breaks
+exactness (the rationals are load-bearing, not decoration).
+
+Synergy: quilt-gan's fabric arcs stop being hand-bowed quadratics (the
+chord metric was hiding 4.1% of communication cost) — they become exact
+rational arcs with a true arc-length referee. B2 twist-along-arc and B3
+ℚ¹⁶ breed trajectories (the duke-lab/tidepool 16-dim collision) sample
+along this seam with no coordinate change.
