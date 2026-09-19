@@ -32,6 +32,27 @@ export const ratAbs = r => r.num < 0n ? makeRat(-r.num, r.den) : r;
 export const ratNeg = r => makeRat(-r.num, r.den);
 export const ratSign = r => r.num < 0n ? -1 : r.num > 0n ? 1 : 0;
 export const ratIsZero = r => r.num === 0n;
+
+// ratSqrt(r) — exact rational square root: r = n/d in lowest terms with
+// r ≥ 0; returns makeRat(isqrt(n), isqrt(d)) when BOTH are perfect squares,
+// else null. The honest ℚ gate for PH hodograph solving.
+export function ratSqrt(r) {
+  if (ratSign(r) < 0) return null;
+  const n = r.num < 0n ? -r.num : r.num;
+  const d = r.den < 0n ? -r.den : r.den;
+  const sn = isqrt(n), sd = isqrt(d);
+  if (sn * sn !== n || sd * sd !== d) return null;
+  return makeRat(sn, sd);
+}
+
+// integer square root (floor) — Newton iteration
+function isqrt(n) {
+  if (n < 0n) throw new RangeError('isqrt of negative');
+  if (n < 2n) return n;
+  let x = n, y = (x + 1n) / 2n;
+  while (y < x) { x = y; y = (x + n / x) / 2n; }
+  return x;
+}
 export const ratEq = (a, b) => a.num * b.den === b.num * a.den;
 export const ratAdd = (a, b) => makeRat(a.num * b.den + b.num * a.den, a.den * b.den);
 export const ratMul = (a, b) => makeRat(a.num * b.num, a.den * b.den);

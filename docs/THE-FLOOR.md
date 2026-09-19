@@ -468,3 +468,31 @@ seam's substrate.
 Synergy: B2 is the flagship seam — quilt-gan's fabric arcs become seams
 the twist instrument can read; hermit's canon edges get an alignment
 budget; B3's ℚ¹⁶ breed trajectories sample along the same law.
+
+## 13. The hodograph seam — PH cubics (ph.mjs), beyond pythagoreanArc
+
+Section 11's pythagoreanArc pins an exact CIRCLE: point membership is BigInt
+zero, but the arc length carries π. Section 13's PH cubics trade the circle
+for the measure: the hodograph is a perfect complex square, c′(t) = (a +
+b·t)² with a, b ∈ ℚ[i] (Farouki, *Pythagorean-Hodograph Curves*, 2008), so:
+
+- **speed** σ(t) = |a + b·t|² is a real quadratic with ℚ coefficients;
+- **arc length** s(t) = ∫₀ᵗ σ is a cubic closed form — one Horner pass in
+  BigInt. No integral, no Simpson, no π. Exact where the 3-4-5 arc never was;
+- **curvature** κ(t) = 2·Im(b·conj(a + b·t)) / σ(t)² is a rational function —
+  exact ℚ at every station, so the Δ_max kill-veto reads truth, not samples.
+
+The honest gate: endpoint interpolation (PH Hermite) solves a = (−b +
+√(4d − b²/3))/2 in ℚ[i] only when the discriminant is a rational square
+(ratSqrt, commensurate.mjs). The fabric's perpendicular bow on an axis chord
+generically FAILS that gate — the denominator of 4L + q²/3 carries an odd
+power of 3 (side 0.1, chord 8 → 2416/75). phFromChord flags exact: false and
+shadows the same law in f64 rather than faking ℚ. Laws pinned in
+tests/ph.test.mjs (8 tests): canonical hodograph length 4/3 as BigInt zero,
+κ(0) = 2 exact + measured cross-check, anti-vacuity (length ≠ chord under
+bow), both-kernel tenancy with ℚ lift provenance.
+
+**Synergy this opens:** v5 fabric — replace Simpson's arcLengthMeasure with
+the PH closed form and the fixed ±0.16 bow with a chord-proportional PH bow:
+the v4 hairpins (κ = 6.75 on chord-0.09 arcs, smoke-v4) die by construction,
+not by judge tolerance.

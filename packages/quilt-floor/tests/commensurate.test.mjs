@@ -74,3 +74,14 @@ test('the spline algebra: ratAdd/ratMul/ratDiv/ratNeg/ratEq/ratIsZero — exact 
   assert.ok(ratIsZero(ratSub(third, third)), 'x − x = 0 exactly');
   assert.throws(() => ratDiv(half, makeRat(0n)), /division by zero/);
 });
+
+// ratSqrt — the exact ℚ gate for PH hodograph solving (ph.mjs)
+test('ratSqrt: perfect squares exact, non-squares null — no tolerance, no pretense', async () => {
+  const { ratSqrt } = await import('../src/commensurate.mjs');
+  const r = (n, d) => makeRat(BigInt(n), BigInt(d));
+  assert.equal(ratToString(ratSqrt(r(36, 1))), '6/1');
+  assert.equal(ratToString(ratSqrt(r(4, 9))), '2/3');
+  assert.equal(ratToString(ratSqrt(r(0, 5))), '0/1');
+  assert.equal(ratSqrt(r(2416, 75)), null, 'the fabric discriminant — not a rational square, flagged');
+  assert.equal(ratSqrt(r(-4, 1)), null, 'negative has no real ℚ root');
+});
