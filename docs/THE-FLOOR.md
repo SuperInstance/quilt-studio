@@ -586,3 +586,21 @@ measured). **Hard constraints and recursive filters do not commute.** The
 replacement relaxes only the interior of each observed-to-observed window
 (curve fairing); a straight leg is a diffusion fixed point (anti-vacuity),
 so smoothing a smooth path changes exactly nothing. 200/200 green.
+
+## 17. Scoped application — mask.mjs (the Custom-NR-Mask concept, clean-room)
+
+A mask is an EXACT SET over a declared finite universe — membership is set
+semantics, algebra (union/intersection/difference/⊤/⊥) is exact, and a
+predicate firing outside its universe is a thrown bug, not a shrug.
+`applyMasked(items, mask, keyOf, op)` is the law: members transform,
+non-members are carried through **untouched — the same rat objects**
+(identity, not recomputed equality). `auditUntouched` proves the
+carry-through on lift strings and catches scope leaks (the test had to
+clone to violate: carry-through is by reference, which is the law).
+
+The tenancy loop closes: `maskFromCells` derives a mask from hosted cells
+(e.g. every fabric arc whose note says GHOST), so a hosted fabric's own
+notes scope the next pass without leaving the kernel; `hostMask` binds the
+mask itself as a cell whose value IS the member list, with 'scopes' links
+to each member. Anti-vacuity pinned both ways: ⊤ transforms everything, ⊥
+is the identity law (zero transformations, rat identity).
