@@ -620,3 +620,40 @@ exact rat — the approximation is a view, the residue is the truth. The
 length view rises toward the true arc (~8.58 for the 3-4-5 arc) while
 refinement errors shrink as exact rats. DLSS estimates reconstruction
 error with a CNN; here it is measurable digit by digit.
+
+## 19. The comb re-probe — twistprobe.mjs (the question the first probe couldn't answer)
+
+Standing since 2026-09-17: two comb claims killed by the first probe
+(fine magic-window teeth 0–1°; large-θ commensuration peaks swamped by
+disk-rim artifacts), with the "16/57 ≈ 1/φ comb" noted as needing a
+re-probe before any minAngle rewire. The re-probe shipped 2026-09-20
+(`src/twistprobe.mjs`, 11 tests). Its findings, in order of discovery:
+
+1. **The residual instrument (R/cloudLaw) is background-starved beyond
+   the twist regime.** The cloud law underflows to ~1e-32 at 36°, so the
+   ratio reads ~e+31 for BOTH symmetric and generic floors — the
+   exponential background beats R's local structure and smears every
+   tooth. The cloud ratio is honest only where it was verified (θ ≲ 2°).
+   **Large-θ questions read R directly** — exactly twist-engine's own
+   discipline (absolute prominence ≥ 0.006, trough ±22 samples).
+2. **The exact anchor.** With uniform γ (the multigrid default), the
+   line arrangement is exactly 36°-symmetric about the origin:
+   R(36°) = 1 to 1e-9, R(72°) = 1. Generic γ: R(36°) ≈ 0.21 — partial
+   statistical recurrence, no exact symmetry. The contrast lives in R.
+3. **THE COMB is real and it is symmetric-γ property.** Uniform-γ R-teeth
+   2–72°: **11.9°, 24.2°, 36° (R = 1), 47.9°, 60.2°** — five teeth on the
+   12° grid, the thirds of the fivefold period (spacing 36/3 ± resolution),
+   bracketing the exact anchor. Generic γ: the 36° tooth is gone; only
+   weak remnants (prominence < 5%, e.g. 23.7°/0.019) survive.
+4. **The "16/57 ≈ 1/φ" claim stays dead, now with the mechanism.** At
+   θ* = 10.105° the generic floor's residual is 59.1 but isLocalMax =
+   false — mid-slope on the smooth large-θ rise, no prominence. The
+   folklore likely saw the uniform comb's 11.9° tooth and misrationalized
+   it; 16/57 = 0.281 ≠ 1/φ = 0.618 arithmetically anyway.
+5. **Boundary discipline**: a peak at a scan's edge is invisible to
+   combTeeth by design — scans must bracket their candidates. (The first
+   probe's large-θ misses were partly scans that ended at a claimed tooth.)
+
+Column honesty is pinned in the module: fine-structure questions
+(residual above the verified cloud background) divide; comb questions
+read R. Never divide by a background you haven't verified at that θ.
