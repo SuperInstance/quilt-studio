@@ -496,3 +496,30 @@ bow), both-kernel tenancy with ℚ lift provenance.
 the PH closed form and the fixed ±0.16 bow with a chord-proportional PH bow:
 the v4 hairpins (κ = 6.75 on chord-0.09 arcs, smoke-v4) die by construction,
 not by judge tolerance.
+
+## 14. The drift front — canon.mjs
+
+The fleet's paper canon is a LIVE state served at
+`/api/canon/hash` (state_hash, paper_count, test_cell_hash, canon_target).
+The 2026-09-19 morning sweep found it mid-drift: **paper_count 14 @
+0x7d8d32cd7f8a9f26 against an unreached canon_target 0xbf27a3631cdee337** —
+README claims 71 papers, a worker copy claims 230+, and the target state is
+a hash nobody has reached. canon.mjs is the eye that watches, per the floor
+doctrine: hashes are identity (kernel cells), counts are measured state,
+drift is classified exactly, never shrugged at.
+
+- `fetchCanonState` — one observation; malformed payloads throw, transport
+  failure is a BLIND event, not silence.
+- `classifyDrift(state, baseline)` — verdicts as data: `hash-drift` (with
+  paper accounting and a `converged` flag when live == target),
+  `count-drift-same-hash` (ANOMALY — same hash, different count: the hash
+  lies or the count does), and the standing `target-front` (reached?
+  unchanged since baseline?).
+- `DriftLog` — append-only JSONL history; transitions derived, never
+  rewritten (WAL discipline).
+- `hostCanon` — live and target hashes are identity cells on BOTH kernels;
+  the front is a `drifts-toward` link between them.
+
+The pinned baseline is the 09:20 GMT+8 observation inside
+tests/canon.test.mjs; the suite's marked LIVE test fails the day the canon
+moves — that failure IS the alarm. 184/184 green, canon unmoved at 14:15.
