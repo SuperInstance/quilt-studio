@@ -7,7 +7,7 @@ family: applications
 vessel: CCC
 born_from: [quilt]
 feeds: [quilt-gan, twist-engine]
-owed_by: [tidepool]
+owed_by: [tidepool, quilt]
 canonical_docs: [README.md, docs/THE-FLOOR.md]
 ledger: git-log
 verified: 2026-09-20
