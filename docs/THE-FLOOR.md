@@ -604,3 +604,19 @@ notes scope the next pass without leaving the kernel; `hostMask` binds the
 mask itself as a cell whose value IS the member list, with 'scopes' links
 to each member. Anti-vacuity pinned both ways: ⊤ transforms everything, ⊥
 is the identity law (zero transformations, rat identity).
+
+## 18. View super-resolution — upscale.mjs (the VSR concept, clean-room)
+
+A spline's identity is its control polygon; upscaling mints denser VIEWS
+of it, never touches identity (same-rat audit, `identityUntouched`).
+Two-metric honesty law, born from a caught inversion: sampled chord
+distances are usually NOT exact square roots, so the module splits —
+**chordalEnergy** Σ|Δ|² is exact at every density and the ladder DESCENDS
+under refinement (splitting u+v changes energy by −2·u·v — the first
+implementation claimed 'climbs' and the tests caught it: the chord,
+density 1, is the lazy one-leap MAXIMUM); **polylineLengthView** is the
+true length as a declared float view whose residue (len² − Σd²) is an
+exact rat — the approximation is a view, the residue is the truth. The
+length view rises toward the true arc (~8.58 for the 3-4-5 arc) while
+refinement errors shrink as exact rats. DLSS estimates reconstruction
+error with a CNN; here it is measurable digit by digit.
