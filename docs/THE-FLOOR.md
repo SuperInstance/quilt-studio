@@ -555,3 +555,34 @@ Anti-vacuity pinned: a float-measured dial is OFF the lattice
 (onLattice: false) — wildness in the ratio is flagged separately from
 wildness in the bytes. Both kernels hold the trajectory identically: ticks
 are cells (float view, ℚ lift identity in meta), chained by 'evolves'.
+
+## 16. Temporal super-resolution — frames.mjs (the DLSS-5 concept map, clean-room)
+
+Merserk/dlss5-visual-enhancer (933★) is a Windows DLSS 5 neural-rendering
+app. **Its license (Merserk Source License 1.0) forbids forks/redistribution/
+modified builds — no code was taken; the concepts were mapped onto the
+floor's exact machinery**, original code throughout:
+
+| DLSS-VE concept | floor law |
+|---|---|
+| Frame Generation | `genFrames` — exact ℚ quadratic-Hermite legs between observed ticks; "motion vectors" are q16's exact velocities (free, not estimated) |
+| Shimmer Suppression | `smoothFrames` — leg-local diffusion: generated views relax by ℚ neighbor averaging between pinned observed endpoints |
+| Detail-Only preset | `detailOnly` — pinned global dials exact-copied, structural dials mutate (BigInt-zero deltas) |
+| Cascade mode | the hermit P1 pattern by name: D1 batch ticks + local WAL replay — already exists, not rebuilt |
+| 1–4 NR passes | the `passes` dial on the diffuser |
+
+The honest law, twice pinned: **generated frames are a VIEW — identity
+states are the observed ticks and nothing else; interpolation never mints
+breed history** (every generated frame carries `exact: false` and meta that
+says "never identity").
+
+### The rejected design (lesson kept)
+
+The first shimmer suppressor was a global dyadic-α EMA over the frame
+sequence. It failed the energy test on the jitter record: routing velocity
+through PINNED observed ticks lets vHat absorb the correction and dump it
+into the next generated view — total energy went UP (0.109 → 0.199,
+measured). **Hard constraints and recursive filters do not commute.** The
+replacement relaxes only the interior of each observed-to-observed window
+(curve fairing); a straight leg is a diffusion fixed point (anti-vacuity),
+so smoothing a smooth path changes exactly nothing. 200/200 green.
