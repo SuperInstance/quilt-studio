@@ -523,3 +523,35 @@ drift is classified exactly, never shrugged at.
 The pinned baseline is the 09:20 GMT+8 observation inside
 tests/canon.test.mjs; the suite's marked LIVE test fails the day the canon
 moves — that failure IS the alarm. 184/184 green, canon unmoved at 14:15.
+
+## 15. The breed seam — ℚ¹⁶ trajectories (q16.mjs)
+
+Four fleet anchors converge on one module:
+
+- **quilt-cell's "16-dial Q1.15"** — fixed-point cell vectors, byte-exact
+  across six languages. Q1.15 IS dyadic (n/2¹⁵): `liftQ15` lands every
+  language's bytes on the identical ℚ. One identity, six tongues.
+- **tidepool** — the memory ocean that stores the trajectory; a breed run
+  is a path through it.
+- **duke-lab's 16-feature ruler** — the measurement function mapping a live
+  system to a ℚ¹⁶ observation (`liftMeasured`, dyadic shadows, honest).
+- **musician-soul's AbstractionSpline** — the f32/Catmull-Rom second
+  backend of the same differential-geometry trait (arc_length, bending
+  energy, tangent). q16 is the exact backend: `arcLen` as float measure
+  (√ leaves ℚ — said once, in the module header), velocities exact ℚ¹⁶.
+
+The breed signature is TWO exact laws per dial per tick
+(`commensurateStep`), never a tolerance:
+
+1. **lattice-exact** — the velocity is an integral number of Q1.15 quanta
+   (BigInt-zero remainder). The six-language substrate guarantee, checkable.
+2. **self-ratio** — where the dial was nonzero, r_i/r_{i−1} is exactly a
+   small-denominator rational (nearestRational error == 0): dials that move
+   by musical ratios (3/2, 4/3) sing; wild dials report their exact rational
+   error. A fresh dial from zero has no self-ratio — the law stays silent,
+   not wrong.
+
+Anti-vacuity pinned: a float-measured dial is OFF the lattice
+(onLattice: false) — wildness in the ratio is flagged separately from
+wildness in the bytes. Both kernels hold the trajectory identically: ticks
+are cells (float view, ℚ lift identity in meta), chained by 'evolves'.
