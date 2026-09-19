@@ -8,7 +8,7 @@ import { QuiltKernel } from '../../quilt-core/src/reference-kernel.mjs';
 import { WasmQuiltKernel } from '../../quilt-core/src/wasm-kernel.mjs';
 import { makeRat, ratEq, ratToNumber, ratToString } from '../src/commensurate.mjs';
 import { evalSpline } from '../src/spline.mjs';
-import { fabricArc, fabricLayout, fabricMetrics, killVeto, hostFabric } from '../src/fabric.mjs';
+import { fabricArc, fabricLayout, fabricMetrics, killVeto, hostFabric, proportionalSide } from '../src/fabric.mjs';
 
 const kernels = [['reference', QuiltKernel], ['wasm', WasmQuiltKernel]];
 const A = { x: 0, y: 0 }, B = { x: 8, y: 0 };
@@ -53,6 +53,24 @@ test('killVeto: gentle fabric passes; degenerate (near-coincident) fabric is KIL
   const ks = [0.02, 0.08, 0.16, 0.32].map(side => killVeto(
     fabricLayout([['a', 'b']], { a: A, b: B }, { sideFor: () => side }), { deltaMax: 1e9 }).kappaMax);
   for (let i = 1; i < ks.length; i++) assert.ok(ks[i] > ks[i - 1], `κ grows with the bow: ${ks}`);
+});
+
+test('v5 law: proportionalSide caps curvature INDEPENDENT of chord — the hairpins die by construction', () => {
+  // the smoke-v4 hairpin pair: chord 0.09
+  const pos = { a: { x: 0, y: 0 }, b: { x: 0.09, y: 0 } };
+  const edges = [['a', 'b']];
+  const v3 = fabricLayout(edges, pos); // default fixed ±0.16
+  const kv3 = killVeto(v3, { deltaMax: 1e9 });
+  assert.ok(kv3.kappaMax > 1, `v3 fixed bow κ_max = ${kv3.kappaMax.toFixed(2)} on chord 0.09 — the hairpin class`);
+  const v5 = fabricLayout(edges, pos, { sideFor: proportionalSide(0.1) });
+  const kv5 = killVeto(v5, { deltaMax: 1e9 });
+  // exact theory: symmetric quadratic, sagitta r·c² ⇒ κ(mid) = 4r = 0.4
+  assert.ok(kv5.kappaMax > 0.3 && kv5.kappaMax < 0.5,
+    `v5 proportional bow κ_max = ${kv5.kappaMax.toFixed(4)} ≈ 4·ratio, bounded`);
+  assert.ok(kv5.kappaMax < kv3.kappaMax / 4, 'the same arc, tamed by the law not the judge');
+  // and the bow is still honest — the true length still exceeds the chord
+  const m5 = fabricMetrics(v5);
+  assert.ok(m5.deltaPct > 0, 'cost still real, just bounded');
 });
 
 test('fabricLayout + fabricMetrics on a mini canon: totals are consistent', () => {
