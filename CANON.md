@@ -6,7 +6,7 @@ state: active
 family: applications
 vessel: CCC
 born_from: [quilt]
-feeds: [quilt-gan, twist-engine]
+feeds: [quilt-gan]
 owed_by: [tidepool, quilt]
 canonical_docs: [README.md, docs/THE-FLOOR.md]
 ledger: git-log
